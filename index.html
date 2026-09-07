@@ -59,7 +59,6 @@
         font-weight: bold;
         color: #4fc1ff;
         margin-bottom: 4px;
-        text-transform: uppercase;
         border-bottom: 1px solid #333;
         padding-bottom: 4px;
         width: 100%;
@@ -223,27 +222,27 @@
   <body>
     <div class="container">
       <div class="left-col panel">
-        <div class="section-title">镜像载入与槽位</div>
+        <div class="section-title">游戏镜像与武将</div>
         <div class="control-group">
-          <label style="color: #4fc1ff">载入 PSP ISO 镜像：</label>
+          <label style="color: #4fc1ff">选择游戏镜像 (ISO)：</label>
           <input type="file" id="fileInput" accept=".iso" />
         </div>
 
         <div class="control-group">
-          <label>目标武将编号 (0 - 667)：</label>
+          <label>武将编号 (0 - 667)：</label>
           <div style="display: flex; gap: 4px">
             <button id="btnPrev" style="width: 38px">&lt;</button>
             <input type="number" id="charIndex" min="0" max="667" value="0" />
             <button id="btnNext" style="width: 38px">&gt;</button>
           </div>
           <div style="font-size: 10px; color: #777; margin-top: 4px">
-            男自创: #538~#607 | 女自创: #608~#637
+            男性自创武将: #538~#607<br>女性自创武将: #608~#637
           </div>
         </div>
 
-        <div class="section-title" style="margin-top: 10px">3. 注入导出</div>
-        <button id="btnSaveIso" class="action-btn">一键注入并另存 ISO</button>
-        <div class="info-box" id="infoBox">等待载入游戏 ISO 镜像...</div>
+        <div class="section-title" style="margin-top: 10px">输出游戏镜像</div>
+        <button id="btnSaveIso" class="action-btn">保存修改后的 ISO</button>
+        <div class="info-box" id="infoBox">等待载入 ISO 镜像...</div>
 
         <div
           style="
@@ -261,9 +260,9 @@
       </div>
 
       <div class="mid-col panel">
-        <div class="section-title">图像裁切与增强</div>
+        <div class="section-title">图片裁切与效果调整</div>
         <div class="control-group">
-          <label>导入图片：</label>
+          <label>选择头像图片：</label>
           <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.bmp" />
         </div>
 
@@ -278,7 +277,7 @@
         </div>
 
         <div class="control-group" style="margin-top: 4px">
-          <label>特写放大：</label>
+          <label>缩放比例：</label>
           <div class="slider-box">
             <input
               type="range"
@@ -293,7 +292,7 @@
         </div>
 
         <div class="control-group">
-          <label>对比度 (推荐 100~115%)：</label>
+          <label>对比度：</label>
           <div class="slider-box">
             <input
               type="range"
@@ -308,7 +307,7 @@
         </div>
 
         <div class="control-group">
-          <label>亮度调节：</label>
+          <label>亮度：</label>
           <div class="slider-box">
             <input
               type="range"
@@ -323,7 +322,7 @@
         </div>
 
         <div class="control-group">
-          <label>保真锐化 (推荐 10~20%)：</label>
+          <label>锐化：</label>
           <div class="slider-box">
             <input
               type="range"
@@ -339,15 +338,15 @@
 
         <label class="checkbox-box" style="margin-top: 2px">
           <input type="checkbox" id="chkBorder" checked />
-          合成原版立体边框
+          原版立体边框
         </label>
       </div>
 
       <div class="right-col panel">
-        <div class="section-title">头像对照校验</div>
+        <div class="section-title">预览对比</div>
         <div class="preview-column">
           <div class="canvas-box">
-            <div class="canvas-title" id="origTitle">原版头像：#0</div>
+            <div class="canvas-title" id="origTitle">原版头像 (#0)</div>
             <canvas
               id="origCanvas"
               class="pixelated"
@@ -356,7 +355,7 @@
             ></canvas>
           </div>
           <div class="canvas-box">
-            <div class="canvas-title" style="color: #69f0ae">实机模拟渲染</div>
+            <div class="canvas-title" style="color: #69f0ae">模拟游戏内显示效果</div>
             <canvas
               id="prevHardwareCanvas"
               class="pixelated"
@@ -368,14 +367,13 @@
       </div>
     </div>
 
-    <canvas
-      id="offscreenCanvas"
-      width="48"
-      height="60"
-      style="display: none"
-    ></canvas>
-
     <script>
+      /*
+       * PSP《三国志7》头像替换工具
+       * Designed & Developed by 儚
+       * License: MIT
+       */
+
       const WIDTH = 48;
       const HEIGHT = 60;
       const STRIDE = 4096;
@@ -388,7 +386,7 @@
       let fullIsoBuffer = null;
       let kaoOffsetInIso = 0;
       let rawKaoBuffer = null;
-      let originalFileName = "SAN7_PERFECT.iso";
+      let originalFileName = "";
 
       let FACTORY_PALETTE_BYTES = null;
       let FACTORY_BASE_COLORS = null;
@@ -432,7 +430,9 @@
       const prevCanvas = document.getElementById("prevHardwareCanvas");
       const prevCtx = prevCanvas.getContext("2d");
 
-      const offscreenCanvas = document.getElementById("offscreenCanvas");
+      const offscreenCanvas = document.createElement("canvas");
+      offscreenCanvas.width = WIDTH;
+      offscreenCanvas.height = HEIGHT;
       const offscreenCtx = offscreenCanvas.getContext("2d");
 
       function updateStatus(msg, isError = false) {
@@ -469,11 +469,12 @@
 
       function findKaoInIso(u8) {
         const magic = [0x00, 0x01, 0x01, 0x00, 0x00, 0x80, 0x42, 0x08];
-        for (let sector = 0; sector < u8.length / 2048; sector++) {
+        const maxSector = Math.floor(u8.length / 2048);
+        for (let sector = 0; sector < maxSector; sector++) {
           const base = sector * 2048;
-          if (base + 24 < u8.length) {
+          if (base + 24 <= u8.length) {
             let match = true;
-            for (let i = 0; i < magic.length; i++) {
+            for (let i = 0; i < 8; i++) {
               if (u8[base + 16 + i] !== magic[i]) {
                 match = false;
                 break;
@@ -486,18 +487,17 @@
       }
 
       function decodeRgba5551(val) {
-        const r = ((val & 0x001f) * 255) / 31;
-        const g = (((val >> 5) & 0x001f) * 255) / 31;
-        const b = (((val >> 10) & 0x001f) * 255) / 31;
-        const a = val & 0x8000 ? 255 : val === 0 ? 0 : 255;
-        return [r, g, b, a];
+        return [
+          ((val & 0x001f) * 255) / 31,
+          (((val >> 5) & 0x001f) * 255) / 31,
+          (((val >> 10) & 0x001f) * 255) / 31,
+        ];
       }
 
       function getOffsets(idx) {
         const base = HEADER_SIZE + idx * STRIDE;
         return {
           base,
-          palStart: base,
           pixelStart: base + PALETTE_SIZE + META_SKIP,
         };
       }
@@ -508,12 +508,13 @@
           const { base } = getOffsets(id);
           const start = baseOffset + base + 4;
           let sum = 0;
-          for (let i = 0; i < 512; i++)
+          for (let i = 0; i < 512; i++) {
             sum = (sum + buffer[start + i]) & 0xffffff;
-          const hex = "0x" + sum.toString(16).toUpperCase();
-          if (!candidates[hex])
-            candidates[hex] = { count: 0, sampleOffset: start };
-          candidates[hex].count++;
+          }
+          if (!candidates[sum]) {
+            candidates[sum] = { count: 0, sampleOffset: start };
+          }
+          candidates[sum].count++;
         }
 
         let best = null;
@@ -522,8 +523,9 @@
         }
 
         const cleanBytes = new Uint8Array(512);
-        for (let i = 0; i < 512; i++)
-          cleanBytes[i] = buffer[best.sampleOffset + i];
+        cleanBytes.set(
+          buffer.subarray(best.sampleOffset, best.sampleOffset + 512),
+        );
 
         const view = new DataView(cleanBytes.buffer);
         const colors = [];
@@ -548,10 +550,7 @@
           const buffer = new Uint8Array(evt.target.result);
           const offset = findKaoInIso(buffer);
           if (offset === -1) {
-            updateStatus(
-              "错误: 未能在该 ISO 中定位头像数据区，请核实镜像版本！",
-              true,
-            );
+            updateStatus("错误: 未能在该 ISO 中定位头像数据区！", true);
             return;
           }
           fullIsoBuffer = buffer;
@@ -565,7 +564,7 @@
           FACTORY_PALETTE_BYTES = voting.bytes;
           FACTORY_BASE_COLORS = voting.colors;
 
-          updateStatus(`ISO 镜像就绪: ${originalFileName}`);
+          updateStatus(`游戏镜像已载入: ${originalFileName}`);
           refreshAllPreviews();
         };
         reader.readAsArrayBuffer(file);
@@ -573,9 +572,9 @@
 
       function renderOriginal() {
         if (!rawKaoBuffer) return;
-        const idx = parseInt(charIndex.value);
+        const idx = parseInt(charIndex.value) || 0;
         const { base, pixelStart } = getOffsets(idx);
-        origTitle.textContent = `原版头像：#${idx}`;
+        origTitle.textContent = `原版头像 (#${idx})`;
 
         const view = new DataView(
           rawKaoBuffer.buffer,
@@ -588,22 +587,20 @@
           origPal.push(
             pAddr + 1 < rawKaoBuffer.length
               ? decodeRgba5551(view.getUint16(pAddr, true))
-              : [0, 0, 0, 255],
+              : [0, 0, 0],
           );
         }
 
         const imgData = origCtx.createImageData(WIDTH, HEIGHT);
         const px = imgData.data;
-        for (let y = 0; y < HEIGHT; y++) {
-          for (let x = 0; x < WIDTH; x++) {
-            const colorIdx = rawKaoBuffer[pixelStart + (y * WIDTH + x)];
-            const col = origPal[colorIdx] || [0, 0, 0, 255];
-            const t = (y * WIDTH + x) * 4;
-            px[t] = col[0];
-            px[t + 1] = col[1];
-            px[t + 2] = col[2];
-            px[t + 3] = 255;
-          }
+        for (let i = 0; i < WIDTH * HEIGHT; i++) {
+          const colorIdx = rawKaoBuffer[pixelStart + i];
+          const col = origPal[colorIdx] || [0, 0, 0];
+          const t = i * 4;
+          px[t] = col[0];
+          px[t + 1] = col[1];
+          px[t + 2] = col[2];
+          px[t + 3] = 255;
         }
         origCtx.putImageData(imgData, 0, 0);
       }
@@ -889,29 +886,31 @@
 
       charIndex.addEventListener("input", refreshAllPreviews);
       btnPrev.addEventListener("click", () => {
-        if (charIndex.value > 0) {
-          charIndex.value = parseInt(charIndex.value) - 1;
+        let val = parseInt(charIndex.value) || 0;
+        if (val > 0) {
+          charIndex.value = val - 1;
           refreshAllPreviews();
         }
       });
       btnNext.addEventListener("click", () => {
-        if (parseInt(charIndex.value) < parseInt(charIndex.max)) {
-          charIndex.value = parseInt(charIndex.value) + 1;
+        let val = parseInt(charIndex.value) || 0;
+        if (val < 667) {
+          charIndex.value = val + 1;
           refreshAllPreviews();
         }
       });
 
       btnSaveIso.addEventListener("click", async () => {
         if (!rawKaoBuffer || !FACTORY_PALETTE_BYTES) {
-          updateStatus("错误: 请先载入游戏原版 ISO 镜像！", true);
+          updateStatus("错误: 请先载入游戏 ISO 镜像！", true);
           return;
         }
         if (!stagedRemappedIndices) {
-          updateStatus("错误: 请先导入人物图像并调整特写！", true);
+          updateStatus("错误: 请先导入头像图片！", true);
           return;
         }
 
-        const targetIdx = parseInt(charIndex.value);
+        const targetIdx = parseInt(charIndex.value) || 0;
         const targetBuffer = fullIsoBuffer;
         const baseOffset = kaoOffsetInIso;
 
@@ -925,23 +924,19 @@
             targetBuffer[fullBase + 1] = 0x01;
             targetBuffer[fullBase + 2] = 0x01;
             targetBuffer[fullBase + 3] = 0x00;
-            for (let i = 0; i < 512; i++) {
-              targetBuffer[fullBase + 4 + i] = FACTORY_PALETTE_BYTES[i];
-            }
+            targetBuffer.set(FACTORY_PALETTE_BYTES, fullBase + 4);
           }
         }
 
         const targetOffsets = getOffsets(targetIdx);
         const pixelDest = baseOffset + targetOffsets.pixelStart;
-        for (let i = 0; i < WIDTH * HEIGHT; i++) {
-          targetBuffer[pixelDest + i] = stagedRemappedIndices[i];
-        }
+        targetBuffer.set(stagedRemappedIndices, pixelDest);
 
         const defaultOutName =
-          originalFileName.replace(/\.iso$/i, "") + "_MODDED.iso";
+          originalFileName.replace(/\.iso$/i, "") + "_MOD.iso";
 
-        if (window.showSaveFilePicker) {
-          try {
+        try {
+          if (window.showSaveFilePicker) {
             const handle = await window.showSaveFilePicker({
               suggestedName: defaultOutName,
               types: [
@@ -954,25 +949,23 @@
             const writable = await handle.createWritable();
             await writable.write(fullIsoBuffer);
             await writable.close();
-            renderOriginal();
-            updateStatus("ISO 镜像注入并保存成功。");
-            return;
-          } catch (err) {
-            if (err.name === "AbortError") return;
+            updateStatus("ISO 镜像已成功保存！");
+          } else {
+            const exportBlob = new Blob([fullIsoBuffer], {
+              type: "application/octet-stream",
+            });
+            const dlLink = document.createElement("a");
+            dlLink.download = defaultOutName;
+            dlLink.href = URL.createObjectURL(exportBlob);
+            dlLink.click();
+            setTimeout(() => URL.revokeObjectURL(dlLink.href), 1000);
+            updateStatus("ISO 镜像已成功保存！");
+          }
+        } catch (err) {
+          if (err.name !== "AbortError") {
+            updateStatus("保存失败: " + err.message, true);
           }
         }
-
-        const exportBlob = new Blob([fullIsoBuffer], {
-          type: "application/octet-stream",
-        });
-        const dlLink = document.createElement("a");
-        dlLink.download = defaultOutName;
-        dlLink.href = URL.createObjectURL(exportBlob);
-        dlLink.click();
-        setTimeout(() => URL.revokeObjectURL(dlLink.href), 1000);
-
-        renderOriginal();
-        updateStatus("ISO 镜像注入成功，已触发下载。");
       });
 
       initCropArea();
