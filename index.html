@@ -1,150 +1,1138 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<title>PSP 三国志7 头像替换工具</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 15px; background: #181818; color: #d4d4d4; }
-  .container { display: flex; gap: 20px; }
-  .panel { background: #222; padding: 16px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-  .left-col { width: 340px; display: flex; flex-direction: column; gap: 12px; }
-  .mid-col { width: 380px; display: flex; flex-direction: column; gap: 12px; }
-  .right-col { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
-  
-  .section-title { font-size: 13px; font-weight: bold; color: #4fc1ff; margin-bottom: 6px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 4px; }
-  .control-group { margin-bottom: 10px; }
-  label { display: block; font-size: 12px; margin-bottom: 4px; color: #bbb; font-weight: 500; }
-  input[type="number"] { width: 100%; padding: 6px 8px; background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 4px; box-sizing: border-box; }
-  input[type="file"] { width: 100%; color: #aaa; font-size: 12px; }
-  
-  .slider-box { display: flex; align-items: center; gap: 8px; }
-  .slider-box input[type="range"] { flex-grow: 1; accent-color: #0e639c; }
-  .slider-box span { width: 40px; text-align: right; font-family: monospace; font-size: 12px; color: #ddd; }
-  
-  .crop-container { width: 100%; height: 260px; background: #111; border: 1px solid #444; position: relative; overflow: hidden; cursor: grab; user-select: none; border-radius: 4px; }
-  .crop-container:active { cursor: grabbing; }
-  #cropCanvas { position: absolute; left: 0; top: 0; }
-  .crop-mask { position: absolute; pointer-events: none; border: 2px solid #00ffff; box-shadow: 0 0 0 9999px rgba(0,0,0,0.65); }
-  
-  .preview-wrapper { display: flex; gap: 24px; margin-top: 15px; }
-  .canvas-box { display: flex; flex-direction: column; align-items: center; }
-  .canvas-title { font-size: 12px; font-weight: bold; margin-bottom: 6px; color: #9cdcfe; }
-  canvas.pixelated { border: 2px solid #444; background: #000; image-rendering: pixelated; }
-  
-  .info-box { background: #1a1a1a; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 11px; white-space: pre-wrap; border-left: 3px solid #0e639c; line-height: 1.4; color: #aaa; }
-  button { padding: 8px 12px; background: #0e639c; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 12px; font-weight: bold; }
-  button:hover { background: #1177bb; }
-  button.action-btn { background: #2e7d32; font-size: 14px; padding: 10px; }
-  button.action-btn:hover { background: #388e3c; }
-  .checkbox-box { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #ccc; cursor: pointer; }
-  .checkbox-box input { accent-color: #0e639c; }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>PSP 三国志7 头像替换工具</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 15px;
+        background: #181818;
+        color: #d4d4d4;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+      }
+      .panel {
+        background: #222;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      }
+      .left-col {
+        width: 340px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .mid-col {
+        width: 380px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .right-col {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-<div class="container">
-  <div class="left-col panel">
-    <div class="section-title">1. 镜像载入与槽位</div>
-    <div class="control-group">
-      <label style="color:#4fc1ff;">载入 PSP 原版 ISO 镜像：</label>
-      <input type="file" id="fileInput" accept=".iso">
-    </div>
-    
-    <div class="control-group">
-      <label>目标武将编号 (0 - 667)：</label>
-      <div style="display: flex; gap: 6px;">
-        <button id="btnPrev" style="width: 45px;">&lt;</button>
-        <input type="number" id="charIndex" min="0" max="667" value="0">
-        <button id="btnNext" style="width: 45px;">&gt;</button>
+      .section-title {
+        font-size: 13px;
+        font-weight: bold;
+        color: #4fc1ff;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        border-bottom: 1px solid #333;
+        padding-bottom: 4px;
+      }
+      .control-group {
+        margin-bottom: 10px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #bbb;
+        font-weight: 500;
+      }
+      input[type="number"] {
+        width: 100%;
+        padding: 6px 8px;
+        background: #2d2d2d;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      input[type="file"] {
+        width: 100%;
+        color: #aaa;
+        font-size: 12px;
+      }
+
+      .slider-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .slider-box input[type="range"] {
+        flex-grow: 1;
+        accent-color: #0e639c;
+      }
+      .slider-box span {
+        width: 40px;
+        text-align: right;
+        font-family: monospace;
+        font-size: 12px;
+        color: #ddd;
+      }
+
+      .crop-container {
+        width: 100%;
+        height: 260px;
+        background: #111;
+        border: 1px solid #444;
+        position: relative;
+        overflow: hidden;
+        cursor: grab;
+        user-select: none;
+        border-radius: 4px;
+      }
+      .crop-container:active {
+        cursor: grabbing;
+      }
+      #cropCanvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .crop-mask {
+        position: absolute;
+        pointer-events: none;
+        border: 2px solid #00ffff;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+      }
+
+      .preview-wrapper {
+        display: flex;
+        gap: 24px;
+        margin-top: 15px;
+      }
+      .canvas-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .canvas-title {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #9cdcfe;
+      }
+      canvas.pixelated {
+        border: 2px solid #444;
+        background: #000;
+        image-rendering: pixelated;
+      }
+
+      .info-box {
+        background: #1a1a1a;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 11px;
+        white-space: pre-wrap;
+        border-left: 3px solid #0e639c;
+        line-height: 1.4;
+        color: #aaa;
+      }
+      button {
+        padding: 8px 12px;
+        background: #0e639c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #1177bb;
+      }
+      button.action-btn {
+        background: #2e7d32;
+        font-size: 14px;
+        padding: 10px;
+      }
+      button.action-btn:hover {
+        background: #388e3c;
+      }
+      .checkbox-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #ccc;
+        cursor: pointer;
+      }
+      .checkbox-box input {
+        accent-color: #0e639c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="left-col panel">
+        <div class="section-title">1. 镜像载入与槽位</div>
+        <div class="control-group">
+          <label style="color: #4fc1ff">载入 PSP 原版 ISO 镜像：</label>
+          <input type="file" id="fileInput" accept=".iso" />
+        </div>
+
+        <div class="control-group">
+          <label>目标武将编号 (0 - 667)：</label>
+          <div style="display: flex; gap: 6px">
+            <button id="btnPrev" style="width: 45px">&lt;</button>
+            <input type="number" id="charIndex" min="0" max="667" value="0" />
+            <button id="btnNext" style="width: 45px">&gt;</button>
+          </div>
+          <div style="font-size: 11px; color: #888; margin-top: 3px">
+            自创男武将区：#538 ~ #607 | 自创女武将区：#608 ~ #637
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>视图放大倍率：</label>
+          <div class="slider-box">
+            <input
+              type="range"
+              id="zoomLevel"
+              min="1"
+              max="8"
+              step="1"
+              value="4"
+            />
+            <span id="zoomVal">4x</span>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-top: 10px">3. 注入导出</div>
+        <button id="btnSaveIso" class="action-btn">一键注入并导出新 ISO</button>
+        <div class="info-box" id="infoBox">等待载入游戏 ISO 镜像...</div>
       </div>
-      <div style="font-size: 11px; color:#888; margin-top: 3px;">自创男武将区：#538 ~ #607 | 自创女武将区：#608 ~ #637</div>
-    </div>
 
-    <div class="control-group">
-      <label>视图放大倍率：</label>
-      <div class="slider-box">
-        <input type="range" id="zoomLevel" min="1" max="8" step="1" value="4">
-        <span id="zoomVal">4x</span>
+      <div class="mid-col panel">
+        <div class="section-title">2. 图像调整与人脸裁切</div>
+        <div class="control-group">
+          <label>导入图片：</label>
+          <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.bmp" />
+        </div>
+
+        <div class="crop-container" id="cropBox">
+          <canvas id="cropCanvas"></canvas>
+          <div class="crop-mask" id="cropMask"></div>
+        </div>
+        <div style="font-size: 11px; color: #888">
+          框内按住鼠标拖拽平移；滚轮或下方滑块缩放特写。
+        </div>
+
+        <div class="control-group" style="margin-top: 6px">
+          <label>特写放大比例：</label>
+          <div class="slider-box">
+            <input
+              type="range"
+              id="faceScale"
+              min="0.1"
+              max="3"
+              step="0.02"
+              value="0.56"
+            />
+            <span id="scaleVal">0.56x</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>对比度微调 (推荐 100~115%)：</label>
+          <div class="slider-box">
+            <input
+              type="range"
+              id="filterContrast"
+              min="80"
+              max="150"
+              step="5"
+              value="110"
+            />
+            <span id="contrastVal">110%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>亮度微调：</label>
+          <div class="slider-box">
+            <input
+              type="range"
+              id="filterBrightness"
+              min="80"
+              max="150"
+              step="2"
+              value="100"
+            />
+            <span id="brightnessVal">100%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>边缘保真锐化 (建议 10~20%)：</label>
+          <div class="slider-box">
+            <input
+              type="range"
+              id="filterSharpen"
+              min="0"
+              max="60"
+              step="5"
+              value="15"
+            />
+            <span id="sharpenVal">15%</span>
+          </div>
+        </div>
+
+        <label class="checkbox-box">
+          <input type="checkbox" id="chkBorder" checked />
+          自动合成原版微光衰自适应浮雕边框
+        </label>
+      </div>
+
+      <div class="right-col panel">
+        <div class="section-title">实机硬件级渲染对比</div>
+        <div class="preview-wrapper">
+          <div class="canvas-box">
+            <div class="canvas-title" id="origTitle">原版头像：#0</div>
+            <canvas
+              id="origCanvas"
+              class="pixelated"
+              width="48"
+              height="60"
+            ></canvas>
+          </div>
+          <div class="canvas-box">
+            <div class="canvas-title" style="color: #4fc1ff">
+              裁剪增强 (48×60)
+            </div>
+            <canvas
+              id="preProcessedCanvas"
+              class="pixelated"
+              width="48"
+              height="60"
+            ></canvas>
+          </div>
+          <div class="canvas-box">
+            <div class="canvas-title" style="color: #69f0ae">
+              实机母盘映射 (所见即所得)
+            </div>
+            <canvas
+              id="prevHardwareCanvas"
+              class="pixelated"
+              width="48"
+              height="60"
+            ></canvas>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="section-title" style="margin-top: 10px;">3. 注入导出</div>
-    <button id="btnSaveIso" class="action-btn">一键注入并导出新 ISO</button>
-    <div class="info-box" id="infoBox">等待载入游戏 ISO 镜像...</div>
-  </div>
-
-  <div class="mid-col panel">
-    <div class="section-title">2. 图像调整与人脸裁切</div>
-    <div class="control-group">
-      <label>导入图片：</label>
-      <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.bmp">
-    </div>
-
-    <div class="crop-container" id="cropBox">
-      <canvas id="cropCanvas"></canvas>
-      <div class="crop-mask" id="cropMask"></div>
-    </div>
-    <div style="font-size: 11px; color:#888;">框内按住鼠标拖拽平移；滚轮或下方滑块缩放特写。</div>
-
-    <div class="control-group" style="margin-top: 6px;">
-      <label>特写放大比例：</label>
-      <div class="slider-box">
-        <input type="range" id="faceScale" min="0.1" max="3" step="0.02" value="0.56">
-        <span id="scaleVal">0.56x</span>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label>对比度微调 (推荐 100~115%)：</label>
-      <div class="slider-box">
-        <input type="range" id="filterContrast" min="80" max="150" step="5" value="110">
-        <span id="contrastVal">110%</span>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label>亮度微调：</label>
-      <div class="slider-box">
-        <input type="range" id="filterBrightness" min="80" max="150" step="2" value="100">
-        <span id="brightnessVal">100%</span>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label>边缘保真锐化 (建议 10~20%)：</label>
-      <div class="slider-box">
-        <input type="range" id="filterSharpen" min="0" max="60" step="5" value="15">
-        <span id="sharpenVal">15%</span>
-      </div>
-    </div>
-
-    <label class="checkbox-box">
-      <input type="checkbox" id="chkBorder" checked>
-      自动合成原版微光衰自适应浮雕边框
-    </label>
-  </div>
-
-  <div class="right-col panel">
-    <div class="section-title">实机硬件级渲染对比</div>
-    <div class="preview-wrapper">
-      <div class="canvas-box">
-        <div class="canvas-title" id="origTitle">原版头像：#0</div>
-        <canvas id="origCanvas" class="pixelated" width="48" height="60"></canvas>
-      </div>
-      <div class="canvas-box">
-        <div class="canvas-title" style="color: #4fc1ff;">裁剪增强 (48×60)</div>
-        <canvas id="preProcessedCanvas" class="pixelated" width="48" height="60"></canvas>
-      </div>
-      <div class="canvas-box">
-        <div class="canvas-title" style="color: #69f0ae;">实机母盘映射 (所见即所得)</div>
-        <canvas id="prevHardwareCanvas" class="pixelated" width="48" height="60"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-const _0x201d1f=_0x1eb1;(function(_0x33e36f,_0x1bb00b){const _0x38705d=_0x1eb1,_0x3d284e=_0x33e36f();while(!![]){try{const _0x50e773=-parseInt(_0x38705d(0x110))/0x1*(parseInt(_0x38705d(0x147))/0x2)+parseInt(_0x38705d(0x14c))/0x3+-parseInt(_0x38705d(0x116))/0x4+-parseInt(_0x38705d(0xf8))/0x5*(parseInt(_0x38705d(0x14e))/0x6)+parseInt(_0x38705d(0xfe))/0x7+-parseInt(_0x38705d(0x11d))/0x8+parseInt(_0x38705d(0x13b))/0x9*(parseInt(_0x38705d(0xef))/0xa);if(_0x50e773===_0x1bb00b)break;else _0x3d284e['push'](_0x3d284e['shift']());}catch(_0x5305ba){_0x3d284e['push'](_0x3d284e['shift']());}}}(_0x9ff1,0x65558));const WIDTH=0x30,HEIGHT=0x3c,STRIDE=0x1000,HEADER_SIZE=0x10,PALETTE_SIZE=0x200,META_SKIP=0x10;let fullIsoBuffer=null,kaoOffsetInIso=0x0,rawKaoBuffer=null,originalFileName=_0x201d1f(0x125),FACTORY_PALETTE_BYTES=null,FACTORY_BASE_COLORS=null,stagedRemappedIndices=null,sourceImage=null,imgPosX=0x0,imgPosY=0x0,isDragging=![],startDragX=0x0,startDragY=0x0;const fileInput=document[_0x201d1f(0x134)]('fileInput'),imageInput=document[_0x201d1f(0x134)](_0x201d1f(0x123)),charIndex=document[_0x201d1f(0x134)](_0x201d1f(0x112)),btnPrev=document['getElementById'](_0x201d1f(0x138)),btnNext=document['getElementById']('btnNext'),zoomLevel=document[_0x201d1f(0x134)](_0x201d1f(0x11e)),zoomVal=document['getElementById'](_0x201d1f(0x144)),infoBox=document[_0x201d1f(0x134)](_0x201d1f(0x151)),origTitle=document[_0x201d1f(0x134)](_0x201d1f(0x127)),btnSaveIso=document[_0x201d1f(0x134)](_0x201d1f(0xee)),cropBox=document[_0x201d1f(0x134)]('cropBox'),cropCanvas=document[_0x201d1f(0x134)](_0x201d1f(0x129)),cropCtx=cropCanvas['getContext']('2d'),cropMask=document[_0x201d1f(0x134)](_0x201d1f(0x122)),faceScale=document[_0x201d1f(0x134)](_0x201d1f(0x111)),scaleVal=document[_0x201d1f(0x134)](_0x201d1f(0x13d)),filterContrast=document[_0x201d1f(0x134)]('filterContrast'),contrastVal=document['getElementById'](_0x201d1f(0x137)),filterBrightness=document[_0x201d1f(0x134)](_0x201d1f(0xf6)),brightnessVal=document['getElementById'](_0x201d1f(0x136)),filterSharpen=document[_0x201d1f(0x134)](_0x201d1f(0x142)),sharpenVal=document['getElementById'](_0x201d1f(0x101)),chkBorder=document[_0x201d1f(0x134)](_0x201d1f(0xfd)),origCanvas=document[_0x201d1f(0x134)]('origCanvas'),origCtx=origCanvas[_0x201d1f(0x143)]('2d'),preCanvas=document[_0x201d1f(0x134)](_0x201d1f(0xff)),preCtx=preCanvas[_0x201d1f(0x143)]('2d'),prevCanvas=document[_0x201d1f(0x134)](_0x201d1f(0x12c)),prevCtx=prevCanvas[_0x201d1f(0x143)]('2d'),MASK_W=0xa0,MASK_H=0xc8;let maskLeft=0x0,maskTop=0x0;function initCropArea(){const _0x22c82b=_0x201d1f;cropCanvas['width']=cropBox[_0x22c82b(0x114)],cropCanvas['height']=cropBox[_0x22c82b(0x14d)],maskLeft=Math[_0x22c82b(0x118)]((cropBox[_0x22c82b(0x114)]-MASK_W)/0x2),maskTop=Math[_0x22c82b(0x118)]((cropBox[_0x22c82b(0x14d)]-MASK_H)/0x2),cropMask[_0x22c82b(0xf3)][_0x22c82b(0xfc)]=MASK_W+'px',cropMask[_0x22c82b(0xf3)][_0x22c82b(0xed)]=MASK_H+'px',cropMask[_0x22c82b(0xf3)][_0x22c82b(0xf1)]=maskLeft+'px',cropMask['style']['top']=maskTop+'px';}window[_0x201d1f(0xf5)](_0x201d1f(0x14a),initCropArea),initCropArea();function findKaoInIso(_0x408c4c){const _0x71b3ac=_0x201d1f,_0x33c780=[0x0,0x1,0x1,0x0,0x0,0x80,0x42,0x8];for(let _0x441b57=0x0;_0x441b57<_0x408c4c[_0x71b3ac(0x10f)]/0x800;_0x441b57++){const _0x1df48e=_0x441b57*0x800;if(_0x1df48e+0x18<_0x408c4c['length']){let _0x4ceba6=!![];for(let _0xaf40fb=0x0;_0xaf40fb<_0x33c780[_0x71b3ac(0x10f)];_0xaf40fb++){if(_0x408c4c[_0x1df48e+0x10+_0xaf40fb]!==_0x33c780[_0xaf40fb]){_0x4ceba6=![];break;}}if(_0x4ceba6)return _0x1df48e;}}return-0x1;}function decodeRgba5551(_0x43622e){const _0x2dddb0=(_0x43622e&0x1f)*0xff/0x1f,_0x3211bc=(_0x43622e>>0x5&0x1f)*0xff/0x1f,_0x38ae4a=(_0x43622e>>0xa&0x1f)*0xff/0x1f,_0x2bebb3=_0x43622e&0x8000?0xff:_0x43622e===0x0?0x0:0xff;return[_0x2dddb0,_0x3211bc,_0x38ae4a,_0x2bebb3];}function getOffsets(_0x136cc6){const _0xc47df0=HEADER_SIZE+_0x136cc6*STRIDE,_0x388682=_0xc47df0,_0x4cf4c9=_0xc47df0+PALETTE_SIZE+META_SKIP;return{'base':_0xc47df0,'palStart':_0x388682,'pixelStart':_0x4cf4c9};}function extractMasterPaletteByVoting(_0x36d4c0,_0x41e22e){const _0x751c7=_0x201d1f,_0x586974={};for(let _0x5d2462=0x260;_0x5d2462<=0x27d;_0x5d2462++){const {base:_0x2ea256}=getOffsets(_0x5d2462),_0x525422=_0x41e22e+_0x2ea256+0x4;let _0x1a1d8c=0x0;for(let _0x5a6786=0x0;_0x5a6786<0x200;_0x5a6786++)_0x1a1d8c=_0x1a1d8c+_0x36d4c0[_0x525422+_0x5a6786]&0xffffff;const _0x309f2b='0x'+_0x1a1d8c[_0x751c7(0x12b)](0x10)[_0x751c7(0x11f)]();if(!_0x586974[_0x309f2b])_0x586974[_0x309f2b]={'count':0x0,'sampleOffset':_0x525422,'sumHex':_0x309f2b};_0x586974[_0x309f2b][_0x751c7(0x13a)]++;}let _0x5dc12a=null;for(let _0x1d18f7 in _0x586974){if(!_0x5dc12a||_0x586974[_0x1d18f7][_0x751c7(0x13a)]>_0x5dc12a[_0x751c7(0x13a)])_0x5dc12a=_0x586974[_0x1d18f7];}const _0x3c7899=new Uint8Array(0x200);for(let _0x11d103=0x0;_0x11d103<0x200;_0x11d103++)_0x3c7899[_0x11d103]=_0x36d4c0[_0x5dc12a[_0x751c7(0x12e)]+_0x11d103];const _0xe3ee45=new DataView(_0x3c7899[_0x751c7(0x106)]),_0xa439d1=[];for(let _0x25a974=0x0;_0x25a974<0x100;_0x25a974++){const _0x41f95e=_0xe3ee45[_0x751c7(0x131)](_0x25a974*0x2,!![]);_0xa439d1[_0x751c7(0x12f)]({'r':(_0x41f95e>>0x0&0x1f)*0xff/0x1f,'g':(_0x41f95e>>0x5&0x1f)*0xff/0x1f,'b':(_0x41f95e>>0xa&0x1f)*0xff/0x1f});}return{'bytes':_0x3c7899,'colors':_0xa439d1,'sumHex':_0x5dc12a[_0x751c7(0x133)],'count':_0x5dc12a['count']};}fileInput[_0x201d1f(0xf5)]('change',_0x21889f=>{const _0x637afb=_0x201d1f,_0x5bc8c0=_0x21889f[_0x637afb(0x11c)][_0x637afb(0x10a)][0x0];if(!_0x5bc8c0)return;originalFileName=_0x5bc8c0[_0x637afb(0x141)];const _0x49c7a9=new FileReader();_0x49c7a9['onload']=function(_0x174455){const _0xd0eff7=_0x637afb,_0x5e3402=new Uint8Array(_0x174455[_0xd0eff7(0x11c)]['result']),_0x443ddd=findKaoInIso(_0x5e3402);if(_0x443ddd===-0x1){alert(_0xd0eff7(0x146));return;}fullIsoBuffer=_0x5e3402,kaoOffsetInIso=_0x443ddd,rawKaoBuffer=fullIsoBuffer[_0xd0eff7(0xfb)](kaoOffsetInIso,kaoOffsetInIso+0x29c000);const _0x1145f3=extractMasterPaletteByVoting(_0x5e3402,_0x443ddd);FACTORY_PALETTE_BYTES=_0x1145f3[_0xd0eff7(0xf4)],FACTORY_BASE_COLORS=_0x1145f3['colors'],infoBox[_0xd0eff7(0xf2)]=_0xd0eff7(0xfa)+originalFileName,renderOriginal();if(sourceImage)processAndQuantize();},_0x49c7a9[_0x637afb(0x130)](_0x5bc8c0);});function updateZoom(){const _0x23099c=_0x201d1f,_0x29e9d2=parseInt(zoomLevel['value']);[origCanvas,preCanvas,prevCanvas][_0x23099c(0x12a)](_0x5a7ef5=>{const _0x2f7f71=_0x23099c;_0x5a7ef5[_0x2f7f71(0xf3)][_0x2f7f71(0xfc)]=WIDTH*_0x29e9d2+'px',_0x5a7ef5['style']['height']=HEIGHT*_0x29e9d2+'px';});}function renderOriginal(){const _0xdee898=_0x201d1f;if(!rawKaoBuffer)return;const _0x2aaccc=parseInt(charIndex['value']),{base:_0x5ef7ee,pixelStart:_0x1ed2c3}=getOffsets(_0x2aaccc);origTitle['textContent']=_0xdee898(0x148)+_0x2aaccc,updateZoom();const _0x333a16=new DataView(rawKaoBuffer[_0xdee898(0x106)],rawKaoBuffer[_0xdee898(0x12d)],rawKaoBuffer[_0xdee898(0x149)]),_0xc9eb54=[];for(let _0x4f3d24=0x0;_0x4f3d24<0x100;_0x4f3d24++){const _0x22ed4a=_0x5ef7ee+0x4+_0x4f3d24*0x2;_0xc9eb54[_0xdee898(0x12f)](_0x22ed4a+0x1<rawKaoBuffer[_0xdee898(0x10f)]?decodeRgba5551(_0x333a16[_0xdee898(0x131)](_0x22ed4a,!![])):[0x0,0x0,0x0,0xff]);}const _0x8927b8=origCtx[_0xdee898(0x13f)](WIDTH,HEIGHT),_0x136f61=_0x8927b8[_0xdee898(0x152)];for(let _0x52f138=0x0;_0x52f138<HEIGHT;_0x52f138++){for(let _0x1e5c03=0x0;_0x1e5c03<WIDTH;_0x1e5c03++){const _0x291521=rawKaoBuffer[_0x1ed2c3+(_0x52f138*WIDTH+_0x1e5c03)],_0x5b983b=_0xc9eb54[_0x291521]||[0x0,0x0,0x0,0xff],_0x4cb2b2=(_0x52f138*WIDTH+_0x1e5c03)*0x4;_0x136f61[_0x4cb2b2]=_0x5b983b[0x0],_0x136f61[_0x4cb2b2+0x1]=_0x5b983b[0x1],_0x136f61[_0x4cb2b2+0x2]=_0x5b983b[0x2],_0x136f61[_0x4cb2b2+0x3]=0xff;}}origCtx[_0xdee898(0x119)](_0x8927b8,0x0,0x0);}imageInput[_0x201d1f(0xf5)](_0x201d1f(0x132),_0x1e0c4c=>{const _0x50c1cb=_0x201d1f,_0x5dd9cf=_0x1e0c4c[_0x50c1cb(0x11c)][_0x50c1cb(0x10a)][0x0];if(!_0x5dd9cf)return;const _0x256599=new FileReader();_0x256599[_0x50c1cb(0x102)]=function(_0x3f5852){const _0xf6c5d3=_0x50c1cb,_0x3bd923=new Image();_0x3bd923[_0xf6c5d3(0x102)]=function(){const _0x4a5cae=_0xf6c5d3;sourceImage=_0x3bd923;const _0x833291=Math['max'](MASK_W/_0x3bd923[_0x4a5cae(0xfc)],MASK_H/_0x3bd923['height']);faceScale[_0x4a5cae(0x126)]=Math['min'](0x3,Math[_0x4a5cae(0x10b)](0.1,_0x833291*1.1))[_0x4a5cae(0xf9)](0x2),scaleVal['textContent']=faceScale[_0x4a5cae(0x126)]+'x',imgPosX=maskLeft+(MASK_W-_0x3bd923[_0x4a5cae(0xfc)]*faceScale[_0x4a5cae(0x126)])/0x2,imgPosY=maskTop+(MASK_H-_0x3bd923['height']*faceScale[_0x4a5cae(0x126)])/0x2,drawCropCanvas(),processAndQuantize();},_0x3bd923[_0xf6c5d3(0x13c)]=_0x3f5852[_0xf6c5d3(0x11c)][_0xf6c5d3(0x14b)];},_0x256599['readAsDataURL'](_0x5dd9cf);}),cropBox[_0x201d1f(0xf5)](_0x201d1f(0x121),_0x33df73=>{const _0x496c61=_0x201d1f;if(!sourceImage)return;isDragging=!![],startDragX=_0x33df73['clientX']-imgPosX,startDragY=_0x33df73[_0x496c61(0x140)]-imgPosY;}),window['addEventListener'](_0x201d1f(0x115),_0x398101=>{const _0x4ef0df=_0x201d1f;if(!isDragging||!sourceImage)return;imgPosX=_0x398101[_0x4ef0df(0x107)]-startDragX,imgPosY=_0x398101[_0x4ef0df(0x140)]-startDragY,drawCropCanvas();}),window[_0x201d1f(0xf5)](_0x201d1f(0x10e),()=>{isDragging&&(isDragging=![],processAndQuantize());}),cropBox[_0x201d1f(0xf5)](_0x201d1f(0x103),_0xfdfb89=>{const _0x16a19e=_0x201d1f;if(!sourceImage)return;_0xfdfb89[_0x16a19e(0x120)]();let _0x43be75=parseFloat(faceScale[_0x16a19e(0x126)])-_0xfdfb89[_0x16a19e(0x109)]*0.001;_0x43be75=Math[_0x16a19e(0xf0)](0x3,Math['max'](0.1,_0x43be75)),faceScale[_0x16a19e(0x126)]=_0x43be75['toFixed'](0x2),scaleVal[_0x16a19e(0xf2)]=_0x43be75['toFixed'](0x2)+'x',drawCropCanvas(),processAndQuantize();},{'passive':![]}),faceScale['addEventListener'](_0x201d1f(0x150),_0x1a2189=>{const _0x1a1877=_0x201d1f;scaleVal[_0x1a1877(0xf2)]=_0x1a2189[_0x1a1877(0x11c)][_0x1a1877(0x126)]+'x',drawCropCanvas(),processAndQuantize();});function _0x1eb1(_0x119d30,_0x2dfb0f){_0x119d30=_0x119d30-0xed;const _0x9ff1a7=_0x9ff1();let _0x1eb15b=_0x9ff1a7[_0x119d30];return _0x1eb15b;}function _0x9ff1(){const _0x47591b=['onload','wheel','click','save','buffer','clientX','请先导入图片调整特写！','deltaY','files','max','contrast(','createObjectURL','mouseup','length','9tBNmnZ','faceScale','charIndex','_MODDED.iso','clientWidth','mousemove','2894676AOljJK','href','floor','putImageData','请先载入游戏\x20ISO\x20镜像！','\x20注入成功！\x0a文件导出:\x20','target','3283568VbHuDG','zoomLevel','toUpperCase','preventDefault','mousedown','cropMask','imageInput','drawImage','SAN7_PERFECT.iso','value','origTitle','%)\x20brightness(','cropCanvas','forEach','toString','prevHardwareCanvas','byteOffset','sampleOffset','push','readAsArrayBuffer','getUint16','change','sumHex','getElementById','getImageData','brightnessVal','contrastVal','btnPrev','clearRect','count','1514664JwXPlZ','src','scaleVal','pixelStart','createImageData','clientY','name','filterSharpen','getContext','zoomVal','武将\x20#','未能在该\x20ISO\x20中自动定位到标准的头像数据区，请确认镜像版本！','57686ifEZZL','原版头像：#','byteLength','resize','result','1602486bWSNsr','clientHeight','1744692SIqqwE','round','input','infoBox','data','height','btnSaveIso','110ZzwRob','min','left','textContent','style','bytes','addEventListener','filterBrightness','restore','10OvDfXI','toFixed','ISO\x20镜像载入成功，已就绪。\x0a当前文件:\x20','subarray','width','chkBorder','34384OYGQzO','preProcessedCanvas','application/octet-stream','sharpenVal'];_0x9ff1=function(){return _0x47591b;};return _0x9ff1();}function drawCropCanvas(){const _0x18bfaa=_0x201d1f;if(!sourceImage)return;cropCtx[_0x18bfaa(0x139)](0x0,0x0,cropCanvas[_0x18bfaa(0xfc)],cropCanvas['height']);const _0x7ca1b8=parseFloat(faceScale[_0x18bfaa(0x126)]);cropCtx[_0x18bfaa(0x124)](sourceImage,imgPosX,imgPosY,sourceImage['width']*_0x7ca1b8,sourceImage[_0x18bfaa(0xed)]*_0x7ca1b8);}function applySharpen(_0x31c456,_0xa13063,_0x274ca4,_0x116d87){const _0x3989e8=_0x201d1f;if(_0x116d87<=0x0)return _0x31c456;const _0x3ae3a4=_0x31c456[_0x3989e8(0x152)],_0x4a4199=new Uint8ClampedArray(_0x3ae3a4),_0x4f9e9c=_0x116d87/0x64;for(let _0x596089=0x1;_0x596089<_0x274ca4-0x1;_0x596089++){for(let _0x3381de=0x1;_0x3381de<_0xa13063-0x1;_0x3381de++){for(let _0x5b2d47=0x0;_0x5b2d47<0x3;_0x5b2d47++){const _0xd02553=(_0x596089*_0xa13063+_0x3381de)*0x4+_0x5b2d47,_0x1b6e82=0x4*_0x3ae3a4[_0xd02553]-_0x3ae3a4[((_0x596089-0x1)*_0xa13063+_0x3381de)*0x4+_0x5b2d47]-_0x3ae3a4[((_0x596089+0x1)*_0xa13063+_0x3381de)*0x4+_0x5b2d47]-_0x3ae3a4[(_0x596089*_0xa13063+(_0x3381de-0x1))*0x4+_0x5b2d47]-_0x3ae3a4[(_0x596089*_0xa13063+(_0x3381de+0x1))*0x4+_0x5b2d47];_0x4a4199[_0xd02553]=Math[_0x3989e8(0xf0)](0xff,Math['max'](0x0,_0x3ae3a4[_0xd02553]+_0x1b6e82*_0x4f9e9c));}}}return new ImageData(_0x4a4199,_0xa13063,_0x274ca4);}function applyAdaptiveBorder(_0x2ed567){const _0x5876f8=_0x201d1f;function _0x3a6fb5(_0x287a6d,_0x2d233d,_0x1d6730,_0x4fe7d7,_0x289270){const _0x5d4886=_0x1eb1,_0x43a8a3=(_0x2d233d*WIDTH+_0x287a6d)*0x4;_0x2ed567[_0x43a8a3+0x0]=Math['min'](0xff,Math[_0x5d4886(0x10b)](0x0,Math[_0x5d4886(0x14f)](_0x1d6730))),_0x2ed567[_0x43a8a3+0x1]=Math['min'](0xff,Math['max'](0x0,Math[_0x5d4886(0x14f)](_0x4fe7d7))),_0x2ed567[_0x43a8a3+0x2]=Math[_0x5d4886(0xf0)](0xff,Math[_0x5d4886(0x10b)](0x0,Math[_0x5d4886(0x14f)](_0x289270))),_0x2ed567[_0x43a8a3+0x3]=0xff;}function _0x1b8c92(_0xfc5060,_0x3c8064){const _0x2e2cd5=(_0x3c8064*WIDTH+_0xfc5060)*0x4;return[_0x2ed567[_0x2e2cd5],_0x2ed567[_0x2e2cd5+0x1],_0x2ed567[_0x2e2cd5+0x2]];}for(let _0x198dcb=0x1;_0x198dcb<WIDTH-0x1;_0x198dcb++){const [_0x50d778,_0x25f88b,_0x24fd6b]=_0x1b8c92(_0x198dcb,0x0),_0x3b0d30=0x1-_0x198dcb/(WIDTH-0x1)*0.22,_0x5a5513=Math[_0x5876f8(0x10b)](_0x50d778*0.25+0xf2*0.75*_0x3b0d30,0xb9*_0x3b0d30),_0x46b09a=Math['max'](_0x25f88b*0.25+0xeb*0.75*_0x3b0d30,0xb2*_0x3b0d30),_0x3ea6a6=Math[_0x5876f8(0x10b)](_0x24fd6b*0.25+0xdc*0.75*_0x3b0d30,0xa2*_0x3b0d30);_0x3a6fb5(_0x198dcb,0x0,_0x5a5513,_0x46b09a,_0x3ea6a6);}for(let _0xa5053=0x1;_0xa5053<HEIGHT-0x1;_0xa5053++){const [_0x29ebf2,_0x1e9d76,_0x348dfd]=_0x1b8c92(0x0,_0xa5053),_0x57f49f=0x1-_0xa5053/(HEIGHT-0x1)*0.22,_0x2b2158=Math[_0x5876f8(0x10b)](_0x29ebf2*0.25+0xf2*0.75*_0x57f49f,0xb9*_0x57f49f),_0x4ea957=Math[_0x5876f8(0x10b)](_0x1e9d76*0.25+0xeb*0.75*_0x57f49f,0xb2*_0x57f49f),_0x54399a=Math[_0x5876f8(0x10b)](_0x348dfd*0.25+0xdc*0.75*_0x57f49f,0xa2*_0x57f49f);_0x3a6fb5(0x0,_0xa5053,_0x2b2158,_0x4ea957,_0x54399a);}for(let _0x195ad1=0x1;_0x195ad1<WIDTH-0x1;_0x195ad1++){const [_0x205733,_0x198680,_0xcb8226]=_0x1b8c92(_0x195ad1,HEIGHT-0x1),_0xb1c8e5=0.85+_0x195ad1/(WIDTH-0x1)*0.15,_0x4874d3=Math['min'](_0x205733*0.2+0x38*0.8,0x3e)*_0xb1c8e5,_0x494700=Math['min'](_0x198680*0.2+0x32*0.8,0x38)*_0xb1c8e5,_0x42859d=Math['min'](_0xcb8226*0.2+0x2d*0.8,0x32)*_0xb1c8e5;_0x3a6fb5(_0x195ad1,HEIGHT-0x1,_0x4874d3,_0x494700,_0x42859d);}for(let _0x16bd67=0x1;_0x16bd67<HEIGHT-0x1;_0x16bd67++){const [_0x10fcb6,_0x243fa8,_0x3ed88a]=_0x1b8c92(WIDTH-0x1,_0x16bd67),_0x23bd0c=0.85+_0x16bd67/(HEIGHT-0x1)*0.15,_0x320781=Math[_0x5876f8(0xf0)](_0x10fcb6*0.2+0x38*0.8,0x3e)*_0x23bd0c,_0x1443b8=Math['min'](_0x243fa8*0.2+0x32*0.8,0x38)*_0x23bd0c,_0x3ce449=Math[_0x5876f8(0xf0)](_0x3ed88a*0.2+0x2d*0.8,0x32)*_0x23bd0c;_0x3a6fb5(WIDTH-0x1,_0x16bd67,_0x320781,_0x1443b8,_0x3ce449);}_0x3a6fb5(0x0,0x0,0xf5,0xee,0xe1),_0x3a6fb5(WIDTH-0x1,HEIGHT-0x1,0x32,0x2c,0x28);const _0x3d3cb1=_0x1b8c92(WIDTH-0x2,0x0),_0x19afdc=_0x1b8c92(WIDTH-0x1,0x1);_0x3a6fb5(WIDTH-0x1,0x0,(_0x3d3cb1[0x0]+_0x19afdc[0x0])*0.5,(_0x3d3cb1[0x1]+_0x19afdc[0x1])*0.5,(_0x3d3cb1[0x2]+_0x19afdc[0x2])*0.5);const _0x1aad6c=_0x1b8c92(0x0,HEIGHT-0x2),_0x52b03b=_0x1b8c92(0x1,HEIGHT-0x1);_0x3a6fb5(0x0,HEIGHT-0x1,(_0x1aad6c[0x0]+_0x52b03b[0x0])*0.5,(_0x1aad6c[0x1]+_0x52b03b[0x1])*0.5,(_0x1aad6c[0x2]+_0x52b03b[0x2])*0.5);}function processAndQuantize(){const _0x51fc02=_0x201d1f;if(!sourceImage||!FACTORY_BASE_COLORS)return;const _0x2d97d3=parseFloat(faceScale[_0x51fc02(0x126)]),_0x14582a=parseInt(filterContrast['value']),_0x38c7fb=parseInt(filterBrightness[_0x51fc02(0x126)]),_0x1b5858=parseInt(filterSharpen[_0x51fc02(0x126)]),_0xb5beca=chkBorder['checked'],_0x1d6aa0=(maskLeft-imgPosX)/_0x2d97d3,_0x3d3706=(maskTop-imgPosY)/_0x2d97d3,_0x55e5e0=MASK_W/_0x2d97d3,_0x5e2b40=MASK_H/_0x2d97d3;preCtx[_0x51fc02(0x105)](),preCtx['filter']=_0x51fc02(0x10c)+_0x14582a+_0x51fc02(0x128)+_0x38c7fb+'%)',preCtx[_0x51fc02(0x124)](sourceImage,_0x1d6aa0,_0x3d3706,_0x55e5e0,_0x5e2b40,0x0,0x0,WIDTH,HEIGHT),preCtx[_0x51fc02(0xf7)]();let _0x282a30=applySharpen(preCtx[_0x51fc02(0x135)](0x0,0x0,WIDTH,HEIGHT),WIDTH,HEIGHT,_0x1b5858);_0xb5beca&&applyAdaptiveBorder(_0x282a30[_0x51fc02(0x152)]);preCtx['putImageData'](_0x282a30,0x0,0x0);const _0x120725=_0x282a30[_0x51fc02(0x152)];stagedRemappedIndices=new Uint8Array(WIDTH*HEIGHT);const _0x2c2634=prevCtx[_0x51fc02(0x13f)](WIDTH,HEIGHT),_0x152b28=_0x2c2634['data'];for(let _0x5ab66d=0x0;_0x5ab66d<WIDTH*HEIGHT;_0x5ab66d++){const _0x4f31e0=_0x120725[_0x5ab66d*0x4+0x0],_0x4b7a6c=_0x120725[_0x5ab66d*0x4+0x1],_0x1b97f3=_0x120725[_0x5ab66d*0x4+0x2];let _0xf8c6df=Infinity,_0x281778=0x1;for(let _0x4f3938=0x1;_0x4f3938<0x100;_0x4f3938++){const _0x3d667b=FACTORY_BASE_COLORS[_0x4f3938],_0x26fe5a=_0x4f31e0-_0x3d667b['r'],_0x4b06e8=_0x4b7a6c-_0x3d667b['g'],_0x242b7e=_0x1b97f3-_0x3d667b['b'],_0x4a1c28=_0x26fe5a*_0x26fe5a*0.299+_0x4b06e8*_0x4b06e8*0.587+_0x242b7e*_0x242b7e*0.114;_0x4a1c28<_0xf8c6df&&(_0xf8c6df=_0x4a1c28,_0x281778=_0x4f3938);}stagedRemappedIndices[_0x5ab66d]=_0x281778;const _0x48cc9a=FACTORY_BASE_COLORS[_0x281778],_0x144c95=_0x5ab66d*0x4;_0x152b28[_0x144c95]=_0x48cc9a['r'],_0x152b28[_0x144c95+0x1]=_0x48cc9a['g'],_0x152b28[_0x144c95+0x2]=_0x48cc9a['b'],_0x152b28[_0x144c95+0x3]=0xff;}prevCtx[_0x51fc02(0x119)](_0x2c2634,0x0,0x0);}[filterContrast,filterBrightness,filterSharpen][_0x201d1f(0x12a)](_0x3462ad=>{const _0x10a984=_0x201d1f;_0x3462ad[_0x10a984(0xf5)]('input',()=>{const _0x371c76=_0x10a984;contrastVal[_0x371c76(0xf2)]=filterContrast['value']+'%',brightnessVal[_0x371c76(0xf2)]=filterBrightness['value']+'%',sharpenVal[_0x371c76(0xf2)]=filterSharpen[_0x371c76(0x126)]+'%',processAndQuantize();});}),chkBorder[_0x201d1f(0xf5)](_0x201d1f(0x132),processAndQuantize),charIndex[_0x201d1f(0xf5)](_0x201d1f(0x150),()=>{renderOriginal(),processAndQuantize();}),btnPrev[_0x201d1f(0xf5)]('click',()=>{const _0x57643f=_0x201d1f;charIndex['value']>0x0&&(charIndex[_0x57643f(0x126)]=parseInt(charIndex[_0x57643f(0x126)])-0x1,renderOriginal(),processAndQuantize());}),btnNext[_0x201d1f(0xf5)](_0x201d1f(0x104),()=>{const _0x3a85fa=_0x201d1f;parseInt(charIndex[_0x3a85fa(0x126)])<parseInt(charIndex[_0x3a85fa(0x10b)])&&(charIndex['value']=parseInt(charIndex[_0x3a85fa(0x126)])+0x1,renderOriginal(),processAndQuantize());}),zoomLevel[_0x201d1f(0xf5)](_0x201d1f(0x150),_0x10ac31=>{const _0x34f791=_0x201d1f;zoomVal[_0x34f791(0xf2)]=_0x10ac31['target'][_0x34f791(0x126)]+'x',updateZoom();}),btnSaveIso[_0x201d1f(0xf5)](_0x201d1f(0x104),()=>{const _0x3ca025=_0x201d1f;if(!rawKaoBuffer||!FACTORY_PALETTE_BYTES){alert(_0x3ca025(0x11a));return;}if(!stagedRemappedIndices){alert(_0x3ca025(0x108));return;}const _0x1fdffb=parseInt(charIndex[_0x3ca025(0x126)]),_0x29f95c=fullIsoBuffer,_0xd91a71=kaoOffsetInIso;if(_0x1fdffb>=0x260&&_0x1fdffb<=0x27d){const _0x3fcad2=Math[_0x3ca025(0x118)]((_0x1fdffb-0x260)/0xa),_0x3cd043=0x260+_0x3fcad2*0xa;for(let _0x2219a7=_0x3cd043;_0x2219a7<_0x3cd043+0xa;_0x2219a7++){const {base:_0x139121}=getOffsets(_0x2219a7),_0x2cdc57=_0xd91a71+_0x139121;_0x29f95c[_0x2cdc57+0x0]=0x0,_0x29f95c[_0x2cdc57+0x1]=0x1,_0x29f95c[_0x2cdc57+0x2]=0x1,_0x29f95c[_0x2cdc57+0x3]=0x0;for(let _0x45b857=0x0;_0x45b857<0x200;_0x45b857++){_0x29f95c[_0x2cdc57+0x4+_0x45b857]=FACTORY_PALETTE_BYTES[_0x45b857];}}}const _0x3a8fe7=getOffsets(_0x1fdffb),_0x514df7=_0xd91a71+_0x3a8fe7[_0x3ca025(0x13e)];for(let _0x478280=0x0;_0x478280<WIDTH*HEIGHT;_0x478280++){_0x29f95c[_0x514df7+_0x478280]=stagedRemappedIndices[_0x478280];}const _0x63c2df=new Blob([fullIsoBuffer],{'type':_0x3ca025(0x100)}),_0x38a6f7=originalFileName['replace'](/\.iso$/i,'')+_0x3ca025(0x113),_0x357360=document['createElement']('a');_0x357360['download']=_0x38a6f7,_0x357360[_0x3ca025(0x117)]=URL[_0x3ca025(0x10d)](_0x63c2df),_0x357360[_0x3ca025(0x104)](),renderOriginal(),alert(_0x3ca025(0x145)+_0x1fdffb+_0x3ca025(0x11b)+_0x38a6f7);});
-</script>
-</body>
+    <script>
+      const _0x201d1f = _0x1eb1;
+      (function (_0x33e36f, _0x1bb00b) {
+        const _0x38705d = _0x1eb1,
+          _0x3d284e = _0x33e36f();
+        while (!![]) {
+          try {
+            const _0x50e773 =
+              (-parseInt(_0x38705d(0x110)) / 0x1) *
+                (parseInt(_0x38705d(0x147)) / 0x2) +
+              parseInt(_0x38705d(0x14c)) / 0x3 +
+              -parseInt(_0x38705d(0x116)) / 0x4 +
+              (-parseInt(_0x38705d(0xf8)) / 0x5) *
+                (parseInt(_0x38705d(0x14e)) / 0x6) +
+              parseInt(_0x38705d(0xfe)) / 0x7 +
+              -parseInt(_0x38705d(0x11d)) / 0x8 +
+              (parseInt(_0x38705d(0x13b)) / 0x9) *
+                (parseInt(_0x38705d(0xef)) / 0xa);
+            if (_0x50e773 === _0x1bb00b) break;
+            else _0x3d284e["push"](_0x3d284e["shift"]());
+          } catch (_0x5305ba) {
+            _0x3d284e["push"](_0x3d284e["shift"]());
+          }
+        }
+      })(_0x9ff1, 0x65558);
+      const WIDTH = 0x30,
+        HEIGHT = 0x3c,
+        STRIDE = 0x1000,
+        HEADER_SIZE = 0x10,
+        PALETTE_SIZE = 0x200,
+        META_SKIP = 0x10;
+      let fullIsoBuffer = null,
+        kaoOffsetInIso = 0x0,
+        rawKaoBuffer = null,
+        originalFileName = _0x201d1f(0x125),
+        FACTORY_PALETTE_BYTES = null,
+        FACTORY_BASE_COLORS = null,
+        stagedRemappedIndices = null,
+        sourceImage = null,
+        imgPosX = 0x0,
+        imgPosY = 0x0,
+        isDragging = ![],
+        startDragX = 0x0,
+        startDragY = 0x0;
+      const fileInput = document[_0x201d1f(0x134)]("fileInput"),
+        imageInput = document[_0x201d1f(0x134)](_0x201d1f(0x123)),
+        charIndex = document[_0x201d1f(0x134)](_0x201d1f(0x112)),
+        btnPrev = document["getElementById"](_0x201d1f(0x138)),
+        btnNext = document["getElementById"]("btnNext"),
+        zoomLevel = document[_0x201d1f(0x134)](_0x201d1f(0x11e)),
+        zoomVal = document["getElementById"](_0x201d1f(0x144)),
+        infoBox = document[_0x201d1f(0x134)](_0x201d1f(0x151)),
+        origTitle = document[_0x201d1f(0x134)](_0x201d1f(0x127)),
+        btnSaveIso = document[_0x201d1f(0x134)](_0x201d1f(0xee)),
+        cropBox = document[_0x201d1f(0x134)]("cropBox"),
+        cropCanvas = document[_0x201d1f(0x134)](_0x201d1f(0x129)),
+        cropCtx = cropCanvas["getContext"]("2d"),
+        cropMask = document[_0x201d1f(0x134)](_0x201d1f(0x122)),
+        faceScale = document[_0x201d1f(0x134)](_0x201d1f(0x111)),
+        scaleVal = document[_0x201d1f(0x134)](_0x201d1f(0x13d)),
+        filterContrast = document[_0x201d1f(0x134)]("filterContrast"),
+        contrastVal = document["getElementById"](_0x201d1f(0x137)),
+        filterBrightness = document[_0x201d1f(0x134)](_0x201d1f(0xf6)),
+        brightnessVal = document["getElementById"](_0x201d1f(0x136)),
+        filterSharpen = document[_0x201d1f(0x134)](_0x201d1f(0x142)),
+        sharpenVal = document["getElementById"](_0x201d1f(0x101)),
+        chkBorder = document[_0x201d1f(0x134)](_0x201d1f(0xfd)),
+        origCanvas = document[_0x201d1f(0x134)]("origCanvas"),
+        origCtx = origCanvas[_0x201d1f(0x143)]("2d"),
+        preCanvas = document[_0x201d1f(0x134)](_0x201d1f(0xff)),
+        preCtx = preCanvas[_0x201d1f(0x143)]("2d"),
+        prevCanvas = document[_0x201d1f(0x134)](_0x201d1f(0x12c)),
+        prevCtx = prevCanvas[_0x201d1f(0x143)]("2d"),
+        MASK_W = 0xa0,
+        MASK_H = 0xc8;
+      let maskLeft = 0x0,
+        maskTop = 0x0;
+      function initCropArea() {
+        const _0x22c82b = _0x201d1f;
+        ((cropCanvas["width"] = cropBox[_0x22c82b(0x114)]),
+          (cropCanvas["height"] = cropBox[_0x22c82b(0x14d)]),
+          (maskLeft = Math[_0x22c82b(0x118)](
+            (cropBox[_0x22c82b(0x114)] - MASK_W) / 0x2,
+          )),
+          (maskTop = Math[_0x22c82b(0x118)](
+            (cropBox[_0x22c82b(0x14d)] - MASK_H) / 0x2,
+          )),
+          (cropMask[_0x22c82b(0xf3)][_0x22c82b(0xfc)] = MASK_W + "px"),
+          (cropMask[_0x22c82b(0xf3)][_0x22c82b(0xed)] = MASK_H + "px"),
+          (cropMask[_0x22c82b(0xf3)][_0x22c82b(0xf1)] = maskLeft + "px"),
+          (cropMask["style"]["top"] = maskTop + "px"));
+      }
+      (window[_0x201d1f(0xf5)](_0x201d1f(0x14a), initCropArea), initCropArea());
+      function findKaoInIso(_0x408c4c) {
+        const _0x71b3ac = _0x201d1f,
+          _0x33c780 = [0x0, 0x1, 0x1, 0x0, 0x0, 0x80, 0x42, 0x8];
+        for (
+          let _0x441b57 = 0x0;
+          _0x441b57 < _0x408c4c[_0x71b3ac(0x10f)] / 0x800;
+          _0x441b57++
+        ) {
+          const _0x1df48e = _0x441b57 * 0x800;
+          if (_0x1df48e + 0x18 < _0x408c4c["length"]) {
+            let _0x4ceba6 = !![];
+            for (
+              let _0xaf40fb = 0x0;
+              _0xaf40fb < _0x33c780[_0x71b3ac(0x10f)];
+              _0xaf40fb++
+            ) {
+              if (
+                _0x408c4c[_0x1df48e + 0x10 + _0xaf40fb] !== _0x33c780[_0xaf40fb]
+              ) {
+                _0x4ceba6 = ![];
+                break;
+              }
+            }
+            if (_0x4ceba6) return _0x1df48e;
+          }
+        }
+        return -0x1;
+      }
+      function decodeRgba5551(_0x43622e) {
+        const _0x2dddb0 = ((_0x43622e & 0x1f) * 0xff) / 0x1f,
+          _0x3211bc = (((_0x43622e >> 0x5) & 0x1f) * 0xff) / 0x1f,
+          _0x38ae4a = (((_0x43622e >> 0xa) & 0x1f) * 0xff) / 0x1f,
+          _0x2bebb3 =
+            _0x43622e & 0x8000 ? 0xff : _0x43622e === 0x0 ? 0x0 : 0xff;
+        return [_0x2dddb0, _0x3211bc, _0x38ae4a, _0x2bebb3];
+      }
+      function getOffsets(_0x136cc6) {
+        const _0xc47df0 = HEADER_SIZE + _0x136cc6 * STRIDE,
+          _0x388682 = _0xc47df0,
+          _0x4cf4c9 = _0xc47df0 + PALETTE_SIZE + META_SKIP;
+        return { base: _0xc47df0, palStart: _0x388682, pixelStart: _0x4cf4c9 };
+      }
+      function extractMasterPaletteByVoting(_0x36d4c0, _0x41e22e) {
+        const _0x751c7 = _0x201d1f,
+          _0x586974 = {};
+        for (let _0x5d2462 = 0x260; _0x5d2462 <= 0x27d; _0x5d2462++) {
+          const { base: _0x2ea256 } = getOffsets(_0x5d2462),
+            _0x525422 = _0x41e22e + _0x2ea256 + 0x4;
+          let _0x1a1d8c = 0x0;
+          for (let _0x5a6786 = 0x0; _0x5a6786 < 0x200; _0x5a6786++)
+            _0x1a1d8c =
+              (_0x1a1d8c + _0x36d4c0[_0x525422 + _0x5a6786]) & 0xffffff;
+          const _0x309f2b =
+            "0x" + _0x1a1d8c[_0x751c7(0x12b)](0x10)[_0x751c7(0x11f)]();
+          if (!_0x586974[_0x309f2b])
+            _0x586974[_0x309f2b] = {
+              count: 0x0,
+              sampleOffset: _0x525422,
+              sumHex: _0x309f2b,
+            };
+          _0x586974[_0x309f2b][_0x751c7(0x13a)]++;
+        }
+        let _0x5dc12a = null;
+        for (let _0x1d18f7 in _0x586974) {
+          if (
+            !_0x5dc12a ||
+            _0x586974[_0x1d18f7][_0x751c7(0x13a)] > _0x5dc12a[_0x751c7(0x13a)]
+          )
+            _0x5dc12a = _0x586974[_0x1d18f7];
+        }
+        const _0x3c7899 = new Uint8Array(0x200);
+        for (let _0x11d103 = 0x0; _0x11d103 < 0x200; _0x11d103++)
+          _0x3c7899[_0x11d103] =
+            _0x36d4c0[_0x5dc12a[_0x751c7(0x12e)] + _0x11d103];
+        const _0xe3ee45 = new DataView(_0x3c7899[_0x751c7(0x106)]),
+          _0xa439d1 = [];
+        for (let _0x25a974 = 0x0; _0x25a974 < 0x100; _0x25a974++) {
+          const _0x41f95e = _0xe3ee45[_0x751c7(0x131)](_0x25a974 * 0x2, !![]);
+          _0xa439d1[_0x751c7(0x12f)]({
+            r: (((_0x41f95e >> 0x0) & 0x1f) * 0xff) / 0x1f,
+            g: (((_0x41f95e >> 0x5) & 0x1f) * 0xff) / 0x1f,
+            b: (((_0x41f95e >> 0xa) & 0x1f) * 0xff) / 0x1f,
+          });
+        }
+        return {
+          bytes: _0x3c7899,
+          colors: _0xa439d1,
+          sumHex: _0x5dc12a[_0x751c7(0x133)],
+          count: _0x5dc12a["count"],
+        };
+      }
+      fileInput[_0x201d1f(0xf5)]("change", (_0x21889f) => {
+        const _0x637afb = _0x201d1f,
+          _0x5bc8c0 = _0x21889f[_0x637afb(0x11c)][_0x637afb(0x10a)][0x0];
+        if (!_0x5bc8c0) return;
+        originalFileName = _0x5bc8c0[_0x637afb(0x141)];
+        const _0x49c7a9 = new FileReader();
+        ((_0x49c7a9["onload"] = function (_0x174455) {
+          const _0xd0eff7 = _0x637afb,
+            _0x5e3402 = new Uint8Array(_0x174455[_0xd0eff7(0x11c)]["result"]),
+            _0x443ddd = findKaoInIso(_0x5e3402);
+          if (_0x443ddd === -0x1) {
+            alert(_0xd0eff7(0x146));
+            return;
+          }
+          ((fullIsoBuffer = _0x5e3402),
+            (kaoOffsetInIso = _0x443ddd),
+            (rawKaoBuffer = fullIsoBuffer[_0xd0eff7(0xfb)](
+              kaoOffsetInIso,
+              kaoOffsetInIso + 0x29c000,
+            )));
+          const _0x1145f3 = extractMasterPaletteByVoting(_0x5e3402, _0x443ddd);
+          ((FACTORY_PALETTE_BYTES = _0x1145f3[_0xd0eff7(0xf4)]),
+            (FACTORY_BASE_COLORS = _0x1145f3["colors"]),
+            (infoBox[_0xd0eff7(0xf2)] = _0xd0eff7(0xfa) + originalFileName),
+            renderOriginal());
+          if (sourceImage) processAndQuantize();
+        }),
+          _0x49c7a9[_0x637afb(0x130)](_0x5bc8c0));
+      });
+      function updateZoom() {
+        const _0x23099c = _0x201d1f,
+          _0x29e9d2 = parseInt(zoomLevel["value"]);
+        [origCanvas, preCanvas, prevCanvas][_0x23099c(0x12a)]((_0x5a7ef5) => {
+          const _0x2f7f71 = _0x23099c;
+          ((_0x5a7ef5[_0x2f7f71(0xf3)][_0x2f7f71(0xfc)] =
+            WIDTH * _0x29e9d2 + "px"),
+            (_0x5a7ef5["style"]["height"] = HEIGHT * _0x29e9d2 + "px"));
+        });
+      }
+      function renderOriginal() {
+        const _0xdee898 = _0x201d1f;
+        if (!rawKaoBuffer) return;
+        const _0x2aaccc = parseInt(charIndex["value"]),
+          { base: _0x5ef7ee, pixelStart: _0x1ed2c3 } = getOffsets(_0x2aaccc);
+        ((origTitle["textContent"] = _0xdee898(0x148) + _0x2aaccc),
+          updateZoom());
+        const _0x333a16 = new DataView(
+            rawKaoBuffer[_0xdee898(0x106)],
+            rawKaoBuffer[_0xdee898(0x12d)],
+            rawKaoBuffer[_0xdee898(0x149)],
+          ),
+          _0xc9eb54 = [];
+        for (let _0x4f3d24 = 0x0; _0x4f3d24 < 0x100; _0x4f3d24++) {
+          const _0x22ed4a = _0x5ef7ee + 0x4 + _0x4f3d24 * 0x2;
+          _0xc9eb54[_0xdee898(0x12f)](
+            _0x22ed4a + 0x1 < rawKaoBuffer[_0xdee898(0x10f)]
+              ? decodeRgba5551(_0x333a16[_0xdee898(0x131)](_0x22ed4a, !![]))
+              : [0x0, 0x0, 0x0, 0xff],
+          );
+        }
+        const _0x8927b8 = origCtx[_0xdee898(0x13f)](WIDTH, HEIGHT),
+          _0x136f61 = _0x8927b8[_0xdee898(0x152)];
+        for (let _0x52f138 = 0x0; _0x52f138 < HEIGHT; _0x52f138++) {
+          for (let _0x1e5c03 = 0x0; _0x1e5c03 < WIDTH; _0x1e5c03++) {
+            const _0x291521 =
+                rawKaoBuffer[_0x1ed2c3 + (_0x52f138 * WIDTH + _0x1e5c03)],
+              _0x5b983b = _0xc9eb54[_0x291521] || [0x0, 0x0, 0x0, 0xff],
+              _0x4cb2b2 = (_0x52f138 * WIDTH + _0x1e5c03) * 0x4;
+            ((_0x136f61[_0x4cb2b2] = _0x5b983b[0x0]),
+              (_0x136f61[_0x4cb2b2 + 0x1] = _0x5b983b[0x1]),
+              (_0x136f61[_0x4cb2b2 + 0x2] = _0x5b983b[0x2]),
+              (_0x136f61[_0x4cb2b2 + 0x3] = 0xff));
+          }
+        }
+        origCtx[_0xdee898(0x119)](_0x8927b8, 0x0, 0x0);
+      }
+      (imageInput[_0x201d1f(0xf5)](_0x201d1f(0x132), (_0x1e0c4c) => {
+        const _0x50c1cb = _0x201d1f,
+          _0x5dd9cf = _0x1e0c4c[_0x50c1cb(0x11c)][_0x50c1cb(0x10a)][0x0];
+        if (!_0x5dd9cf) return;
+        const _0x256599 = new FileReader();
+        ((_0x256599[_0x50c1cb(0x102)] = function (_0x3f5852) {
+          const _0xf6c5d3 = _0x50c1cb,
+            _0x3bd923 = new Image();
+          ((_0x3bd923[_0xf6c5d3(0x102)] = function () {
+            const _0x4a5cae = _0xf6c5d3;
+            sourceImage = _0x3bd923;
+            const _0x833291 = Math["max"](
+              MASK_W / _0x3bd923[_0x4a5cae(0xfc)],
+              MASK_H / _0x3bd923["height"],
+            );
+            ((faceScale[_0x4a5cae(0x126)] = Math["min"](
+              0x3,
+              Math[_0x4a5cae(0x10b)](0.1, _0x833291 * 1.1),
+            )[_0x4a5cae(0xf9)](0x2)),
+              (scaleVal["textContent"] = faceScale[_0x4a5cae(0x126)] + "x"),
+              (imgPosX =
+                maskLeft +
+                (MASK_W -
+                  _0x3bd923[_0x4a5cae(0xfc)] * faceScale[_0x4a5cae(0x126)]) /
+                  0x2),
+              (imgPosY =
+                maskTop +
+                (MASK_H - _0x3bd923["height"] * faceScale[_0x4a5cae(0x126)]) /
+                  0x2),
+              drawCropCanvas(),
+              processAndQuantize());
+          }),
+            (_0x3bd923[_0xf6c5d3(0x13c)] =
+              _0x3f5852[_0xf6c5d3(0x11c)][_0xf6c5d3(0x14b)]));
+        }),
+          _0x256599["readAsDataURL"](_0x5dd9cf));
+      }),
+        cropBox[_0x201d1f(0xf5)](_0x201d1f(0x121), (_0x33df73) => {
+          const _0x496c61 = _0x201d1f;
+          if (!sourceImage) return;
+          ((isDragging = !![]),
+            (startDragX = _0x33df73["clientX"] - imgPosX),
+            (startDragY = _0x33df73[_0x496c61(0x140)] - imgPosY));
+        }),
+        window["addEventListener"](_0x201d1f(0x115), (_0x398101) => {
+          const _0x4ef0df = _0x201d1f;
+          if (!isDragging || !sourceImage) return;
+          ((imgPosX = _0x398101[_0x4ef0df(0x107)] - startDragX),
+            (imgPosY = _0x398101[_0x4ef0df(0x140)] - startDragY),
+            drawCropCanvas());
+        }),
+        window[_0x201d1f(0xf5)](_0x201d1f(0x10e), () => {
+          isDragging && ((isDragging = ![]), processAndQuantize());
+        }),
+        cropBox[_0x201d1f(0xf5)](
+          _0x201d1f(0x103),
+          (_0xfdfb89) => {
+            const _0x16a19e = _0x201d1f;
+            if (!sourceImage) return;
+            _0xfdfb89[_0x16a19e(0x120)]();
+            let _0x43be75 =
+              parseFloat(faceScale[_0x16a19e(0x126)]) -
+              _0xfdfb89[_0x16a19e(0x109)] * 0.001;
+            ((_0x43be75 = Math[_0x16a19e(0xf0)](
+              0x3,
+              Math["max"](0.1, _0x43be75),
+            )),
+              (faceScale[_0x16a19e(0x126)] = _0x43be75["toFixed"](0x2)),
+              (scaleVal[_0x16a19e(0xf2)] = _0x43be75["toFixed"](0x2) + "x"),
+              drawCropCanvas(),
+              processAndQuantize());
+          },
+          { passive: ![] },
+        ),
+        faceScale["addEventListener"](_0x201d1f(0x150), (_0x1a2189) => {
+          const _0x1a1877 = _0x201d1f;
+          ((scaleVal[_0x1a1877(0xf2)] =
+            _0x1a2189[_0x1a1877(0x11c)][_0x1a1877(0x126)] + "x"),
+            drawCropCanvas(),
+            processAndQuantize());
+        }));
+      function _0x1eb1(_0x119d30, _0x2dfb0f) {
+        _0x119d30 = _0x119d30 - 0xed;
+        const _0x9ff1a7 = _0x9ff1();
+        let _0x1eb15b = _0x9ff1a7[_0x119d30];
+        return _0x1eb15b;
+      }
+      function _0x9ff1() {
+        const _0x47591b = [
+          "onload",
+          "wheel",
+          "click",
+          "save",
+          "buffer",
+          "clientX",
+          "请先导入图片调整特写！",
+          "deltaY",
+          "files",
+          "max",
+          "contrast(",
+          "createObjectURL",
+          "mouseup",
+          "length",
+          "9tBNmnZ",
+          "faceScale",
+          "charIndex",
+          "_MODDED.iso",
+          "clientWidth",
+          "mousemove",
+          "2894676AOljJK",
+          "href",
+          "floor",
+          "putImageData",
+          "请先载入游戏\x20ISO\x20镜像！",
+          "\x20注入成功！\x0a文件导出:\x20",
+          "target",
+          "3283568VbHuDG",
+          "zoomLevel",
+          "toUpperCase",
+          "preventDefault",
+          "mousedown",
+          "cropMask",
+          "imageInput",
+          "drawImage",
+          "SAN7_PERFECT.iso",
+          "value",
+          "origTitle",
+          "%)\x20brightness(",
+          "cropCanvas",
+          "forEach",
+          "toString",
+          "prevHardwareCanvas",
+          "byteOffset",
+          "sampleOffset",
+          "push",
+          "readAsArrayBuffer",
+          "getUint16",
+          "change",
+          "sumHex",
+          "getElementById",
+          "getImageData",
+          "brightnessVal",
+          "contrastVal",
+          "btnPrev",
+          "clearRect",
+          "count",
+          "1514664JwXPlZ",
+          "src",
+          "scaleVal",
+          "pixelStart",
+          "createImageData",
+          "clientY",
+          "name",
+          "filterSharpen",
+          "getContext",
+          "zoomVal",
+          "武将\x20#",
+          "未能在该\x20ISO\x20中自动定位到标准的头像数据区，请确认镜像版本！",
+          "57686ifEZZL",
+          "原版头像：#",
+          "byteLength",
+          "resize",
+          "result",
+          "1602486bWSNsr",
+          "clientHeight",
+          "1744692SIqqwE",
+          "round",
+          "input",
+          "infoBox",
+          "data",
+          "height",
+          "btnSaveIso",
+          "110ZzwRob",
+          "min",
+          "left",
+          "textContent",
+          "style",
+          "bytes",
+          "addEventListener",
+          "filterBrightness",
+          "restore",
+          "10OvDfXI",
+          "toFixed",
+          "ISO\x20镜像载入成功，已就绪。\x0a当前文件:\x20",
+          "subarray",
+          "width",
+          "chkBorder",
+          "34384OYGQzO",
+          "preProcessedCanvas",
+          "application/octet-stream",
+          "sharpenVal",
+        ];
+        _0x9ff1 = function () {
+          return _0x47591b;
+        };
+        return _0x9ff1();
+      }
+      function drawCropCanvas() {
+        const _0x18bfaa = _0x201d1f;
+        if (!sourceImage) return;
+        cropCtx[_0x18bfaa(0x139)](
+          0x0,
+          0x0,
+          cropCanvas[_0x18bfaa(0xfc)],
+          cropCanvas["height"],
+        );
+        const _0x7ca1b8 = parseFloat(faceScale[_0x18bfaa(0x126)]);
+        cropCtx[_0x18bfaa(0x124)](
+          sourceImage,
+          imgPosX,
+          imgPosY,
+          sourceImage["width"] * _0x7ca1b8,
+          sourceImage[_0x18bfaa(0xed)] * _0x7ca1b8,
+        );
+      }
+      function applySharpen(_0x31c456, _0xa13063, _0x274ca4, _0x116d87) {
+        const _0x3989e8 = _0x201d1f;
+        if (_0x116d87 <= 0x0) return _0x31c456;
+        const _0x3ae3a4 = _0x31c456[_0x3989e8(0x152)],
+          _0x4a4199 = new Uint8ClampedArray(_0x3ae3a4),
+          _0x4f9e9c = _0x116d87 / 0x64;
+        for (let _0x596089 = 0x1; _0x596089 < _0x274ca4 - 0x1; _0x596089++) {
+          for (let _0x3381de = 0x1; _0x3381de < _0xa13063 - 0x1; _0x3381de++) {
+            for (let _0x5b2d47 = 0x0; _0x5b2d47 < 0x3; _0x5b2d47++) {
+              const _0xd02553 =
+                  (_0x596089 * _0xa13063 + _0x3381de) * 0x4 + _0x5b2d47,
+                _0x1b6e82 =
+                  0x4 * _0x3ae3a4[_0xd02553] -
+                  _0x3ae3a4[
+                    ((_0x596089 - 0x1) * _0xa13063 + _0x3381de) * 0x4 +
+                      _0x5b2d47
+                  ] -
+                  _0x3ae3a4[
+                    ((_0x596089 + 0x1) * _0xa13063 + _0x3381de) * 0x4 +
+                      _0x5b2d47
+                  ] -
+                  _0x3ae3a4[
+                    (_0x596089 * _0xa13063 + (_0x3381de - 0x1)) * 0x4 +
+                      _0x5b2d47
+                  ] -
+                  _0x3ae3a4[
+                    (_0x596089 * _0xa13063 + (_0x3381de + 0x1)) * 0x4 +
+                      _0x5b2d47
+                  ];
+              _0x4a4199[_0xd02553] = Math[_0x3989e8(0xf0)](
+                0xff,
+                Math["max"](0x0, _0x3ae3a4[_0xd02553] + _0x1b6e82 * _0x4f9e9c),
+              );
+            }
+          }
+        }
+        return new ImageData(_0x4a4199, _0xa13063, _0x274ca4);
+      }
+      function applyAdaptiveBorder(_0x2ed567) {
+        const _0x5876f8 = _0x201d1f;
+        function _0x3a6fb5(
+          _0x287a6d,
+          _0x2d233d,
+          _0x1d6730,
+          _0x4fe7d7,
+          _0x289270,
+        ) {
+          const _0x5d4886 = _0x1eb1,
+            _0x43a8a3 = (_0x2d233d * WIDTH + _0x287a6d) * 0x4;
+          ((_0x2ed567[_0x43a8a3 + 0x0] = Math["min"](
+            0xff,
+            Math[_0x5d4886(0x10b)](0x0, Math[_0x5d4886(0x14f)](_0x1d6730)),
+          )),
+            (_0x2ed567[_0x43a8a3 + 0x1] = Math["min"](
+              0xff,
+              Math["max"](0x0, Math[_0x5d4886(0x14f)](_0x4fe7d7)),
+            )),
+            (_0x2ed567[_0x43a8a3 + 0x2] = Math[_0x5d4886(0xf0)](
+              0xff,
+              Math[_0x5d4886(0x10b)](0x0, Math[_0x5d4886(0x14f)](_0x289270)),
+            )),
+            (_0x2ed567[_0x43a8a3 + 0x3] = 0xff));
+        }
+        function _0x1b8c92(_0xfc5060, _0x3c8064) {
+          const _0x2e2cd5 = (_0x3c8064 * WIDTH + _0xfc5060) * 0x4;
+          return [
+            _0x2ed567[_0x2e2cd5],
+            _0x2ed567[_0x2e2cd5 + 0x1],
+            _0x2ed567[_0x2e2cd5 + 0x2],
+          ];
+        }
+        for (let _0x198dcb = 0x1; _0x198dcb < WIDTH - 0x1; _0x198dcb++) {
+          const [_0x50d778, _0x25f88b, _0x24fd6b] = _0x1b8c92(_0x198dcb, 0x0),
+            _0x3b0d30 = 0x1 - (_0x198dcb / (WIDTH - 0x1)) * 0.22,
+            _0x5a5513 = Math[_0x5876f8(0x10b)](
+              _0x50d778 * 0.25 + 0xf2 * 0.75 * _0x3b0d30,
+              0xb9 * _0x3b0d30,
+            ),
+            _0x46b09a = Math["max"](
+              _0x25f88b * 0.25 + 0xeb * 0.75 * _0x3b0d30,
+              0xb2 * _0x3b0d30,
+            ),
+            _0x3ea6a6 = Math[_0x5876f8(0x10b)](
+              _0x24fd6b * 0.25 + 0xdc * 0.75 * _0x3b0d30,
+              0xa2 * _0x3b0d30,
+            );
+          _0x3a6fb5(_0x198dcb, 0x0, _0x5a5513, _0x46b09a, _0x3ea6a6);
+        }
+        for (let _0xa5053 = 0x1; _0xa5053 < HEIGHT - 0x1; _0xa5053++) {
+          const [_0x29ebf2, _0x1e9d76, _0x348dfd] = _0x1b8c92(0x0, _0xa5053),
+            _0x57f49f = 0x1 - (_0xa5053 / (HEIGHT - 0x1)) * 0.22,
+            _0x2b2158 = Math[_0x5876f8(0x10b)](
+              _0x29ebf2 * 0.25 + 0xf2 * 0.75 * _0x57f49f,
+              0xb9 * _0x57f49f,
+            ),
+            _0x4ea957 = Math[_0x5876f8(0x10b)](
+              _0x1e9d76 * 0.25 + 0xeb * 0.75 * _0x57f49f,
+              0xb2 * _0x57f49f,
+            ),
+            _0x54399a = Math[_0x5876f8(0x10b)](
+              _0x348dfd * 0.25 + 0xdc * 0.75 * _0x57f49f,
+              0xa2 * _0x57f49f,
+            );
+          _0x3a6fb5(0x0, _0xa5053, _0x2b2158, _0x4ea957, _0x54399a);
+        }
+        for (let _0x195ad1 = 0x1; _0x195ad1 < WIDTH - 0x1; _0x195ad1++) {
+          const [_0x205733, _0x198680, _0xcb8226] = _0x1b8c92(
+              _0x195ad1,
+              HEIGHT - 0x1,
+            ),
+            _0xb1c8e5 = 0.85 + (_0x195ad1 / (WIDTH - 0x1)) * 0.15,
+            _0x4874d3 =
+              Math["min"](_0x205733 * 0.2 + 0x38 * 0.8, 0x3e) * _0xb1c8e5,
+            _0x494700 =
+              Math["min"](_0x198680 * 0.2 + 0x32 * 0.8, 0x38) * _0xb1c8e5,
+            _0x42859d =
+              Math["min"](_0xcb8226 * 0.2 + 0x2d * 0.8, 0x32) * _0xb1c8e5;
+          _0x3a6fb5(_0x195ad1, HEIGHT - 0x1, _0x4874d3, _0x494700, _0x42859d);
+        }
+        for (let _0x16bd67 = 0x1; _0x16bd67 < HEIGHT - 0x1; _0x16bd67++) {
+          const [_0x10fcb6, _0x243fa8, _0x3ed88a] = _0x1b8c92(
+              WIDTH - 0x1,
+              _0x16bd67,
+            ),
+            _0x23bd0c = 0.85 + (_0x16bd67 / (HEIGHT - 0x1)) * 0.15,
+            _0x320781 =
+              Math[_0x5876f8(0xf0)](_0x10fcb6 * 0.2 + 0x38 * 0.8, 0x3e) *
+              _0x23bd0c,
+            _0x1443b8 =
+              Math["min"](_0x243fa8 * 0.2 + 0x32 * 0.8, 0x38) * _0x23bd0c,
+            _0x3ce449 =
+              Math[_0x5876f8(0xf0)](_0x3ed88a * 0.2 + 0x2d * 0.8, 0x32) *
+              _0x23bd0c;
+          _0x3a6fb5(WIDTH - 0x1, _0x16bd67, _0x320781, _0x1443b8, _0x3ce449);
+        }
+        (_0x3a6fb5(0x0, 0x0, 0xf5, 0xee, 0xe1),
+          _0x3a6fb5(WIDTH - 0x1, HEIGHT - 0x1, 0x32, 0x2c, 0x28));
+        const _0x3d3cb1 = _0x1b8c92(WIDTH - 0x2, 0x0),
+          _0x19afdc = _0x1b8c92(WIDTH - 0x1, 0x1);
+        _0x3a6fb5(
+          WIDTH - 0x1,
+          0x0,
+          (_0x3d3cb1[0x0] + _0x19afdc[0x0]) * 0.5,
+          (_0x3d3cb1[0x1] + _0x19afdc[0x1]) * 0.5,
+          (_0x3d3cb1[0x2] + _0x19afdc[0x2]) * 0.5,
+        );
+        const _0x1aad6c = _0x1b8c92(0x0, HEIGHT - 0x2),
+          _0x52b03b = _0x1b8c92(0x1, HEIGHT - 0x1);
+        _0x3a6fb5(
+          0x0,
+          HEIGHT - 0x1,
+          (_0x1aad6c[0x0] + _0x52b03b[0x0]) * 0.5,
+          (_0x1aad6c[0x1] + _0x52b03b[0x1]) * 0.5,
+          (_0x1aad6c[0x2] + _0x52b03b[0x2]) * 0.5,
+        );
+      }
+      function processAndQuantize() {
+        const _0x51fc02 = _0x201d1f;
+        if (!sourceImage || !FACTORY_BASE_COLORS) return;
+        const _0x2d97d3 = parseFloat(faceScale[_0x51fc02(0x126)]),
+          _0x14582a = parseInt(filterContrast["value"]),
+          _0x38c7fb = parseInt(filterBrightness[_0x51fc02(0x126)]),
+          _0x1b5858 = parseInt(filterSharpen[_0x51fc02(0x126)]),
+          _0xb5beca = chkBorder["checked"],
+          _0x1d6aa0 = (maskLeft - imgPosX) / _0x2d97d3,
+          _0x3d3706 = (maskTop - imgPosY) / _0x2d97d3,
+          _0x55e5e0 = MASK_W / _0x2d97d3,
+          _0x5e2b40 = MASK_H / _0x2d97d3;
+        (preCtx[_0x51fc02(0x105)](),
+          (preCtx["filter"] =
+            _0x51fc02(0x10c) + _0x14582a + _0x51fc02(0x128) + _0x38c7fb + "%)"),
+          preCtx[_0x51fc02(0x124)](
+            sourceImage,
+            _0x1d6aa0,
+            _0x3d3706,
+            _0x55e5e0,
+            _0x5e2b40,
+            0x0,
+            0x0,
+            WIDTH,
+            HEIGHT,
+          ),
+          preCtx[_0x51fc02(0xf7)]());
+        let _0x282a30 = applySharpen(
+          preCtx[_0x51fc02(0x135)](0x0, 0x0, WIDTH, HEIGHT),
+          WIDTH,
+          HEIGHT,
+          _0x1b5858,
+        );
+        _0xb5beca && applyAdaptiveBorder(_0x282a30[_0x51fc02(0x152)]);
+        preCtx["putImageData"](_0x282a30, 0x0, 0x0);
+        const _0x120725 = _0x282a30[_0x51fc02(0x152)];
+        stagedRemappedIndices = new Uint8Array(WIDTH * HEIGHT);
+        const _0x2c2634 = prevCtx[_0x51fc02(0x13f)](WIDTH, HEIGHT),
+          _0x152b28 = _0x2c2634["data"];
+        for (let _0x5ab66d = 0x0; _0x5ab66d < WIDTH * HEIGHT; _0x5ab66d++) {
+          const _0x4f31e0 = _0x120725[_0x5ab66d * 0x4 + 0x0],
+            _0x4b7a6c = _0x120725[_0x5ab66d * 0x4 + 0x1],
+            _0x1b97f3 = _0x120725[_0x5ab66d * 0x4 + 0x2];
+          let _0xf8c6df = Infinity,
+            _0x281778 = 0x1;
+          for (let _0x4f3938 = 0x1; _0x4f3938 < 0x100; _0x4f3938++) {
+            const _0x3d667b = FACTORY_BASE_COLORS[_0x4f3938],
+              _0x26fe5a = _0x4f31e0 - _0x3d667b["r"],
+              _0x4b06e8 = _0x4b7a6c - _0x3d667b["g"],
+              _0x242b7e = _0x1b97f3 - _0x3d667b["b"],
+              _0x4a1c28 =
+                _0x26fe5a * _0x26fe5a * 0.299 +
+                _0x4b06e8 * _0x4b06e8 * 0.587 +
+                _0x242b7e * _0x242b7e * 0.114;
+            _0x4a1c28 < _0xf8c6df &&
+              ((_0xf8c6df = _0x4a1c28), (_0x281778 = _0x4f3938));
+          }
+          stagedRemappedIndices[_0x5ab66d] = _0x281778;
+          const _0x48cc9a = FACTORY_BASE_COLORS[_0x281778],
+            _0x144c95 = _0x5ab66d * 0x4;
+          ((_0x152b28[_0x144c95] = _0x48cc9a["r"]),
+            (_0x152b28[_0x144c95 + 0x1] = _0x48cc9a["g"]),
+            (_0x152b28[_0x144c95 + 0x2] = _0x48cc9a["b"]),
+            (_0x152b28[_0x144c95 + 0x3] = 0xff));
+        }
+        prevCtx[_0x51fc02(0x119)](_0x2c2634, 0x0, 0x0);
+      }
+      ([filterContrast, filterBrightness, filterSharpen][_0x201d1f(0x12a)](
+        (_0x3462ad) => {
+          const _0x10a984 = _0x201d1f;
+          _0x3462ad[_0x10a984(0xf5)]("input", () => {
+            const _0x371c76 = _0x10a984;
+            ((contrastVal[_0x371c76(0xf2)] = filterContrast["value"] + "%"),
+              (brightnessVal[_0x371c76(0xf2)] =
+                filterBrightness["value"] + "%"),
+              (sharpenVal[_0x371c76(0xf2)] =
+                filterSharpen[_0x371c76(0x126)] + "%"),
+              processAndQuantize());
+          });
+        },
+      ),
+        chkBorder[_0x201d1f(0xf5)](_0x201d1f(0x132), processAndQuantize),
+        charIndex[_0x201d1f(0xf5)](_0x201d1f(0x150), () => {
+          (renderOriginal(), processAndQuantize());
+        }),
+        btnPrev[_0x201d1f(0xf5)]("click", () => {
+          const _0x57643f = _0x201d1f;
+          charIndex["value"] > 0x0 &&
+            ((charIndex[_0x57643f(0x126)] =
+              parseInt(charIndex[_0x57643f(0x126)]) - 0x1),
+            renderOriginal(),
+            processAndQuantize());
+        }),
+        btnNext[_0x201d1f(0xf5)](_0x201d1f(0x104), () => {
+          const _0x3a85fa = _0x201d1f;
+          parseInt(charIndex[_0x3a85fa(0x126)]) <
+            parseInt(charIndex[_0x3a85fa(0x10b)]) &&
+            ((charIndex["value"] = parseInt(charIndex[_0x3a85fa(0x126)]) + 0x1),
+            renderOriginal(),
+            processAndQuantize());
+        }),
+        zoomLevel[_0x201d1f(0xf5)](_0x201d1f(0x150), (_0x10ac31) => {
+          const _0x34f791 = _0x201d1f;
+          ((zoomVal[_0x34f791(0xf2)] =
+            _0x10ac31["target"][_0x34f791(0x126)] + "x"),
+            updateZoom());
+        }),
+        btnSaveIso[_0x201d1f(0xf5)](_0x201d1f(0x104), () => {
+          const _0x3ca025 = _0x201d1f;
+          if (!rawKaoBuffer || !FACTORY_PALETTE_BYTES) {
+            alert(_0x3ca025(0x11a));
+            return;
+          }
+          if (!stagedRemappedIndices) {
+            alert(_0x3ca025(0x108));
+            return;
+          }
+          const _0x1fdffb = parseInt(charIndex[_0x3ca025(0x126)]),
+            _0x29f95c = fullIsoBuffer,
+            _0xd91a71 = kaoOffsetInIso;
+          if (_0x1fdffb >= 0x260 && _0x1fdffb <= 0x27d) {
+            const _0x3fcad2 = Math[_0x3ca025(0x118)]((_0x1fdffb - 0x260) / 0xa),
+              _0x3cd043 = 0x260 + _0x3fcad2 * 0xa;
+            for (
+              let _0x2219a7 = _0x3cd043;
+              _0x2219a7 < _0x3cd043 + 0xa;
+              _0x2219a7++
+            ) {
+              const { base: _0x139121 } = getOffsets(_0x2219a7),
+                _0x2cdc57 = _0xd91a71 + _0x139121;
+              ((_0x29f95c[_0x2cdc57 + 0x0] = 0x0),
+                (_0x29f95c[_0x2cdc57 + 0x1] = 0x1),
+                (_0x29f95c[_0x2cdc57 + 0x2] = 0x1),
+                (_0x29f95c[_0x2cdc57 + 0x3] = 0x0));
+              for (let _0x45b857 = 0x0; _0x45b857 < 0x200; _0x45b857++) {
+                _0x29f95c[_0x2cdc57 + 0x4 + _0x45b857] =
+                  FACTORY_PALETTE_BYTES[_0x45b857];
+              }
+            }
+          }
+          const _0x3a8fe7 = getOffsets(_0x1fdffb),
+            _0x514df7 = _0xd91a71 + _0x3a8fe7[_0x3ca025(0x13e)];
+          for (let _0x478280 = 0x0; _0x478280 < WIDTH * HEIGHT; _0x478280++) {
+            _0x29f95c[_0x514df7 + _0x478280] = stagedRemappedIndices[_0x478280];
+          }
+          const _0x63c2df = new Blob([fullIsoBuffer], {
+              type: _0x3ca025(0x100),
+            }),
+            _0x38a6f7 =
+              originalFileName["replace"](/\.iso$/i, "") + _0x3ca025(0x113),
+            _0x357360 = document["createElement"]("a");
+          ((_0x357360["download"] = _0x38a6f7),
+            (_0x357360[_0x3ca025(0x117)] = URL[_0x3ca025(0x10d)](_0x63c2df)),
+            _0x357360[_0x3ca025(0x104)](),
+            renderOriginal(),
+            alert(_0x3ca025(0x145) + _0x1fdffb + _0x3ca025(0x11b) + _0x38a6f7));
+        }));
+    </script>
+  </body>
 </html>
